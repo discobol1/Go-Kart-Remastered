@@ -8,10 +8,50 @@
     <title>Go-Kart Pro Race System</title>
     <style>
         :root {
-            --bg: #121212; --card: #1e1e1e; --text: #ffffff;
-            --accent: #e74c3c; --success: #2ecc71; --warning: #f1c40f; --info: #3498db;
+            color-scheme: dark;
+            --blue: #0090FF;
+            --yellow: #FFCC00;
+            --green: #0090FF;
+            --red: #FF5500;
+            --info: var(--blue);
+            --warning: var(--yellow);
+            --success: var(--green);
+            --accent: var(--red);
+            --card-outline: var(--warning);
+            --neon-glow: color-mix(in srgb, var(--warning) 38%, transparent);
+            --info-tint: color-mix(in srgb, var(--info) 15%, transparent);
+            --info-tint-strong: color-mix(in srgb, var(--info) 22%, transparent);
+            --info-tint-soft: color-mix(in srgb, var(--info) 10%, transparent);
+            --accent-tint: color-mix(in srgb, var(--accent) 15%, transparent);
+            --accent-tint-strong: color-mix(in srgb, var(--accent) 22%, transparent);
+            --accent-tint-soft: color-mix(in srgb, var(--accent) 8%, transparent);
+            --accent-tint-border: color-mix(in srgb, var(--accent) 30%, transparent);
+            --success-tint: color-mix(in srgb, var(--success) 12%, transparent);
+            --success-tint-mid: color-mix(in srgb, var(--success) 35%, transparent);
+            --success-tint-strong: color-mix(in srgb, var(--success) 16%, transparent);
+            --success-glow: color-mix(in srgb, var(--success) 55%, transparent);
+            --warning-tint: color-mix(in srgb, var(--warning) 15%, transparent);
+            --warning-tint-soft: color-mix(in srgb, var(--warning) 8%, transparent);
+            --warning-tint-border: color-mix(in srgb, var(--warning) 28%, transparent);
+            --bg: #000000; --card: #0a0804; --surface: #141008; --surface-deep: #060504;
+            --text: #FFF5E6; --text-secondary: #C8B8A0;
+            --muted: #6B6050; --muted-dim: #524A3E; --muted-light: #A89878;
+            --border: color-mix(in srgb, var(--warning) 12%, #0a0804);
+            --border-strong: color-mix(in srgb, var(--warning) 28%, #141008);
+            --toolbar-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0.98) 70%, transparent);
+            --panel-action-bg: rgba(10, 8, 4, 0.92);
+            --panel-action-text: var(--warning);
+            --panel-action-border: color-mix(in srgb, var(--warning) 55%, #141008);
+            --panel-action-text-hover: #000000;
+            --panel-action-border-hover: var(--warning);
+            --panel-action-bg-hover: var(--warning);
+            --racing-bg: color-mix(in srgb, var(--success) 14%, #000000);
+            --input-bg: #141008; --input-text: #FFF5E6;
+            --undo-bg: #100c06; --overlay-bg: rgba(0, 0, 0, 0.97);
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; }
+        body {
+            font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden;
+        }
         
         /* --- MODE SELECTION --- */
         #mode-selection {
@@ -20,18 +60,21 @@
         }
         .mode-btn { 
             padding: 30px 60px; font-size: 1.5rem; cursor: pointer; border: none; 
-            border-radius: 10px; font-weight: bold; width: 350px; transition: 0.3s;
+ font-weight: bold; width: 350px; transition: 0.3s;
         }
         .mode-btn:hover { transform: scale(1.05); opacity: 0.9; }
-        .mode-hint { color: #666; font-size: 0.9rem; max-width: 420px; text-align: center; line-height: 1.5; }
+        .mode-hint { color: var(--muted-dim); font-size: 0.9rem; max-width: 420px; text-align: center; line-height: 1.5; }
+        #mode-selection h1 { text-align: center; text-shadow: 0 0 40px var(--neon-glow); }
 
         /* --- COMMON UI ELEMENTS --- */
         .hidden { display: none !important; }
 
         /* --- MANAGER MODE (2 columns + bottom add bar) --- */
         #manager-panel {
-            width: 100%; height: 100vh; box-sizing: border-box;
-            display: flex; flex-direction: column; padding: 20px 24px;
+            width: 100%; height: 100vh; height: 100dvh; box-sizing: border-box;
+            display: flex; flex-direction: column;
+            padding: 20px 24px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
             overflow: hidden;
         }
         .manager-columns {
@@ -39,30 +82,32 @@
             gap: 16px; flex: 1; min-height: 0;
         }
         .manager-col {
-            background: var(--card); border: 1px solid #333; border-radius: 10px;
+            background: var(--card); border: 1px solid var(--card-outline);
             padding: 16px; display: flex; flex-direction: column; min-height: 0;
+            box-shadow: 0 0 24px var(--neon-glow);
         }
         .col-title {
-            margin: 0 0 14px; font-size: 0.85rem; color: #888;
-            text-transform: uppercase; letter-spacing: 2px;
-            border-bottom: 1px solid #333; padding-bottom: 10px;
+            margin: 0 0 14px; font-size: 0.85rem; color: var(--text);
+            text-transform: uppercase; letter-spacing: 2px; text-align: center;
+            border-bottom: 1px solid var(--card-outline); padding-bottom: 10px;
         }
         .col-subtitle {
             font-size: 0.75rem; color: var(--success); text-transform: uppercase;
-            letter-spacing: 1px; margin-bottom: 8px; font-weight: 700;
+            letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; text-align: center;
         }
-        .col-subtitle.queue { color: #666; margin-top: 12px; }
-        .col-empty { color: #444; font-size: 0.9rem; font-style: italic; margin: 8px 0; }
+        .col-subtitle.queue { color: var(--muted-dim); margin-top: 12px; }
+        .col-empty { color: var(--muted-dim); font-size: 0.9rem; font-style: italic; margin: 8px 0; opacity: 0.75; }
         .manager-col-list { flex: 1; overflow-y: auto; min-height: 0; }
         .manager-bar {
-            flex-shrink: 0; display: flex; align-items: stretch;
+            flex-shrink: 0; display: flex; align-items: stretch; gap: 12px;
             padding: 16px; margin-top: 16px;
-            background: var(--card); border: 1px solid #333; border-radius: 10px;
+            background: var(--card); border: 1px solid var(--card-outline);
+            box-shadow: 0 0 24px var(--neon-glow);
             --add-control-h: 46px;
         }
         .add-form {
             display: flex; flex-direction: row; align-items: stretch;
-            gap: 12px; width: 100%;
+            gap: 12px; flex: 1; min-width: 0;
         }
         .add-field {
             display: flex; flex-direction: column; justify-content: flex-end;
@@ -78,13 +123,13 @@
             border-width: 1px; border-style: solid; cursor: pointer;
         }
         .cat-select-sm.gemengd {
-            background: rgba(52, 152, 219, 0.15); color: var(--info); border-color: var(--info);
+            background: var(--info-tint); color: var(--info); border-color: var(--info);
         }
         .cat-select-sm.vrouwen {
-            background: rgba(231, 76, 60, 0.15); color: var(--accent); border-color: var(--accent);
+            background: var(--accent-tint); color: var(--accent); border-color: var(--accent);
         }
         .cat-select-sm.jeugd {
-            background: rgba(241, 196, 15, 0.15); color: var(--warning); border-color: var(--warning);
+            background: var(--warning-tint); color: var(--warning); border-color: var(--warning);
         }
         .add-field-check { flex-shrink: 0; width: 92px; }
         .add-field-action { flex-shrink: 0; width: 130px; }
@@ -93,22 +138,22 @@
         }
         .member-toggle {
             flex: 1; min-width: 0; display: inline-flex; align-items: center;
-            justify-content: center; padding: 0; border-radius: 5px;
-            border: 1px solid #444; background: #2a2a2a; cursor: pointer;
+            justify-content: center; padding: 0;
+            border: 1px solid var(--border-strong); background: var(--surface); cursor: pointer;
             font-family: inherit; line-height: 0;
         }
-        .member-toggle:hover { border-color: #666; }
+        .member-toggle:hover { border-color: var(--muted); }
         .member-toggle.male {
             border-color: var(--info); color: var(--info);
-            background: rgba(52, 152, 219, 0.15);
+            background: var(--info-tint);
         }
         .member-toggle.female {
             border-color: var(--accent); color: var(--accent);
-            background: rgba(231, 76, 60, 0.15);
+            background: var(--accent-tint);
         }
         .member-toggle.jeugd {
             border-color: var(--warning); color: var(--warning);
-            background: rgba(241, 196, 15, 0.15);
+            background: var(--warning-tint);
         }
         .member-toggle:disabled { cursor: not-allowed; opacity: 0.85; }
         .member-composition {
@@ -116,15 +161,15 @@
         }
         .member-dot {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 1.1rem; height: 1.1rem; border-radius: 3px; line-height: 0;
+            width: 1.1rem; height: 1.1rem; line-height: 0;
         }
-        .member-dot.male { color: var(--info); background: rgba(52, 152, 219, 0.15); }
-        .member-dot.female { color: var(--accent); background: rgba(231, 76, 60, 0.15); }
-        .member-dot.jeugd { color: var(--warning); background: rgba(241, 196, 15, 0.15); }
+        .member-dot.male { color: var(--info); background: var(--info-tint); }
+        .member-dot.female { color: var(--accent); background: var(--accent-tint); }
+        .member-dot.jeugd { color: var(--warning); background: var(--warning-tint); }
         .member-icon { width: 0.75rem; height: 0.75rem; display: block; }
         .add-form label {
-            font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;
-            line-height: 1.2; min-height: 0.9rem;
+            font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+            line-height: 1.2; min-height: 0.9rem; text-align: center;
         }
         .add-form label.add-label-spacer { visibility: hidden; user-select: none; }
         .add-form input,
@@ -140,27 +185,27 @@
         }
         .btn-add-bar {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 0 20px; white-space: nowrap; border: none; border-radius: 5px;
+            padding: 0 20px; white-space: nowrap; border: none;
             font-size: 0.95rem; font-weight: 700; cursor: pointer;
         }
         .verkleed-toggle {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            cursor: pointer; padding: 0 14px; border-radius: 5px; border: 1px solid #444;
-            background: #2a2a2a; white-space: nowrap; font-size: 0.85rem;
-            color: #ccc; user-select: none; font-family: inherit; font-weight: inherit;
+            cursor: pointer; padding: 0 14px; border: 1px solid var(--border-strong);
+            background: var(--surface); white-space: nowrap; font-size: 0.85rem;
+            color: var(--text-secondary); user-select: none; font-family: inherit; font-weight: inherit;
         }
-        .verkleed-toggle:hover { border-color: #666; color: #ddd; }
+        .verkleed-toggle:hover { border-color: var(--muted); color: var(--text); }
         .verkleed-toggle.active {
-            border-color: #9b59b6; background: rgba(155, 89, 182, 0.15); color: #d7b8e8;
+            border-color: #BF40FF; background: rgba(191, 64, 255, 0.15); color: #E0B0FF;
         }
         .verkleed-toggle .verkleed-icon { width: 1.15rem; height: 1.15rem; display: block; }
         .verkleed-badge {
             flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
-            padding: 4px 6px; border-radius: 4px; line-height: 0;
-            background: rgba(155, 89, 182, 0.2); color: #bb86fc; border: 1px solid #9b59b6;
+            padding: 4px 6px; line-height: 0;
+            background: rgba(191, 64, 255, 0.2); color: #D090FF; border: 1px solid #BF40FF;
         }
         .verkleed-icon { width: 1rem; height: 1rem; display: block; }
-        input, select { padding: 12px; border-radius: 5px; border: 1px solid #444; background: #2a2a2a; color: white; }
+        input, select { padding: 12px; border: 1px solid var(--border-strong); background: var(--input-bg); color: var(--input-text); }
         select { cursor: pointer; }
         .team-line {
             display: flex; align-items: center; gap: 10px; min-width: 0;
@@ -173,79 +218,74 @@
         .team-label-name { font-weight: 600; word-break: break-word; min-width: 0; }
         .cat-badge {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 4px 6px; border-radius: 4px; width: fit-content; line-height: 0;
+            padding: 4px 6px; width: fit-content; line-height: 0;
         }
         .cat-icon { width: 1rem; height: 1rem; display: block; }
-        .cat-badge.gemengd { background: rgba(52,152,219,0.2); color: var(--info); border: 1px solid var(--info); }
-        .cat-badge.vrouwen { background: rgba(231,76,60,0.2); color: var(--accent); border: 1px solid var(--accent); }
-        .cat-badge.jeugd { background: rgba(241,196,15,0.15); color: var(--warning); border: 1px solid var(--warning); }
+        .cat-badge.gemengd { background: var(--info-tint-strong); color: var(--info); border: 1px solid var(--info); }
+        .cat-badge.vrouwen { background: var(--accent-tint-strong); color: var(--accent); border: 1px solid var(--accent); }
+        .cat-badge.jeugd { background: var(--warning-tint); color: var(--warning); border: 1px solid var(--warning); }
         #control-live-cat .cat-icon { width: 1.15rem; height: 1.15rem; }
         #display-live-cat .cat-icon { width: 1.35rem; height: 1.35rem; }
-        #display-next-up-cat .cat-badge { padding: 8px 12px; }
-        #display-next-up-cat .cat-icon {
-            width: clamp(2.5rem, 5vw, 4rem);
-            height: clamp(2.5rem, 5vw, 4rem);
+        .display-queue-row {
+            border-left: 6px solid var(--border-strong);
+            padding-left: clamp(12px, 2vw, 20px);
         }
+        .display-queue-row.cat-gemengd { border-left-color: var(--info); }
+        .display-queue-row.cat-vrouwen { border-left-color: var(--accent); }
+        .display-queue-row.cat-jeugd { border-left-color: var(--warning); }
         .display-next-row--after {
             margin-top: clamp(0.75rem, 1.5vw, 1.25rem);
             padding-top: clamp(0.75rem, 1.5vw, 1.25rem);
-            border-top: 1px solid #333;
+            border-top: 1px solid var(--border);
         }
         .display-next-row--after .display-next-label {
             font-size: clamp(0.9rem, 1.8vw, 1.35rem);
-            color: #666;
+            color: var(--muted-dim);
         }
         #display-next-after .team-line {
             justify-content: center; gap: clamp(8px, 1.5vw, 14px); min-width: 0;
         }
-        #display-next-after-cat .cat-badge { padding: 4px 8px; }
-        #display-next-after-cat .cat-icon {
-            width: clamp(1.5rem, 3vw, 2.5rem);
-            height: clamp(1.5rem, 3vw, 2.5rem);
-        }
         #display-next-after-name {
             font-size: clamp(1.5rem, 4vw, 2.75rem); font-weight: 700;
-            color: #a68b0c; text-transform: uppercase;
+            color: var(--warning); text-transform: uppercase;
             word-break: break-word; line-height: 1.1; text-align: left;
         }
         #countdown-team-cat .cat-badge { padding: 10px 14px; }
         #countdown-team-cat .cat-icon { width: 2.5rem; height: 2.5rem; }
-        button { padding: 10px 15px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
-        .btn-add { background: var(--info); color: white; }
-        .btn-rename { background: #555; color: white; padding: 5px 10px; font-size: 0.85rem; }
+        button { padding: 10px 15px; cursor: pointer; border: none; font-weight: bold; }
+        .btn-add { background: var(--warning); color: #000000; }
+        .btn-rename { background: var(--warning); color: #000000; padding: 5px 10px; font-size: 0.85rem; }
         .btn-del { background: var(--accent); color: white; padding: 5px 10px; }
         .team-item {
-            background: #252525; padding: 12px; border-radius: 8px;
+            background: var(--surface); padding: 12px;
             margin-bottom: 10px; display: flex; justify-content: space-between;
             align-items: flex-start; gap: 8px;
         }
-        .team-item.pending { align-items: center; }
+        .team-item.pending {
+            align-items: center;
+            border-left: 4px solid var(--border-strong);
+        }
+        .team-item.pending.cat-gemengd { border-left-color: var(--info); }
+        .team-item.pending.cat-vrouwen { border-left-color: var(--accent); }
+        .team-item.pending.cat-jeugd { border-left-color: var(--warning); }
         .team-item.pending.dragging { opacity: 0.45; }
-        .team-item.pending.drop-above { box-shadow: inset 0 2px 0 var(--info); }
-        .team-item.pending.drop-below { box-shadow: inset 0 -2px 0 var(--info); }
+        .team-item.pending.drop-above { box-shadow: inset 0 2px 0 var(--warning); }
+        .team-item.pending.drop-below { box-shadow: inset 0 -2px 0 var(--warning); }
         .drag-handle {
-            flex-shrink: 0; cursor: grab; color: #555; padding: 4px 8px 4px 2px;
+            flex-shrink: 0; cursor: grab; color: var(--muted-dim); padding: 4px 8px 4px 2px;
             user-select: none; font-size: 1.1rem; line-height: 1; letter-spacing: -2px;
         }
-        .drag-handle:active { cursor: grabbing; color: #888; }
-        .team-item.racing { border-left: 5px solid var(--success); background: #1a2e23; }
-        .team-item.finished {
-            border-left: 5px solid #555; flex-direction: column; align-items: stretch;
-        }
-        .team-item.finished.best-rank { border-left-color: var(--warning); }
-        .team-item.finished .team-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-        .team-result-time {
-            font-family: 'Consolas', monospace; font-size: 1.25rem;
-            font-weight: 700; color: var(--success); margin-top: 8px;
-            padding-top: 8px; border-top: 1px solid #333;
-        }
+        .drag-handle:active { cursor: grabbing; color: var(--muted); }
+        .team-item.racing { border-left: 5px solid var(--success); background: var(--racing-bg); }
         .team-controls { display: flex; flex-wrap: wrap; gap: 5px; flex-shrink: 0; }
         .on-track-wrap.hidden { display: none; }
 
         /* --- CONTROL MODE (2 columns + bottom bar) --- */
         #control-panel {
-            width: 100%; height: 100vh; box-sizing: border-box;
-            display: flex; flex-direction: column; padding: 20px 24px;
+            width: 100%; height: 100vh; height: 100dvh; box-sizing: border-box;
+            display: flex; flex-direction: column;
+            padding: 20px 24px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
             overflow: hidden;
         }
         .control-columns {
@@ -253,8 +293,9 @@
             gap: 16px; flex: 1; min-height: 0;
         }
         .control-col {
-            background: var(--card); border: 1px solid #333; border-radius: 10px;
+            background: var(--card); border: 1px solid var(--card-outline);
             padding: 16px; display: flex; flex-direction: column; min-height: 0;
+            box-shadow: 0 0 24px var(--neon-glow);
         }
         .control-col-list { flex: 1; overflow-y: auto; min-height: 0; }
         #control-live {
@@ -263,7 +304,7 @@
         }
         .control-live-now {
             flex-shrink: 0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 1px; color: #888; white-space: nowrap;
+            letter-spacing: 1px; color: var(--muted); white-space: nowrap;
         }
         .control-live-main { flex: 1; min-width: 0; }
         .control-live-main .team-line { justify-content: flex-start; }
@@ -275,83 +316,100 @@
             flex-shrink: 0; font-family: 'Consolas', monospace; font-size: 2.25rem;
             font-weight: 700; color: var(--success); font-variant-numeric: tabular-nums;
         }
-        #control-live-timer.dim { color: #333; }
+        #control-live-timer.dim { color: var(--border); }
         #control-live-timer.warn { color: var(--warning); }
         .control-sort-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-shrink: 0; }
         .sort-btn {
             flex: 1; padding: 8px 10px; font-size: 0.75rem; font-weight: 700;
             text-transform: uppercase; letter-spacing: 1px;
-            background: #2a2a2a; color: #888; border: 1px solid #444; border-radius: 6px;
-            cursor: pointer;
+            background: var(--surface);
+            color: color-mix(in srgb, var(--success) 60%, var(--muted-light));
+            border: 1px solid var(--success);
+            cursor: pointer; font-family: inherit;
         }
-        .sort-btn.active { background: rgba(52,152,219,0.15); color: var(--info); border-color: var(--info); }
-        .sort-btn:hover:not(.active) { color: #ccc; border-color: #666; }
-        .team-item.next-up { outline: 2px solid var(--warning); outline-offset: -2px; }
+        .sort-btn.active { background: var(--success-tint); color: var(--success); border-color: var(--success); }
+        .sort-btn:hover:not(.active) { color: var(--success); border-color: var(--success); background: var(--success-tint); }
+        .team-item.next-up { border-bottom: 2px solid var(--success); }
         .control-result-item {
-            background: #252525; padding: 10px 12px; border-radius: 8px;
-            margin-bottom: 8px; border-left: 4px solid #444;
+            background: var(--surface); padding: 10px 12px;
+            margin-bottom: 8px; border-left: 4px solid var(--border-strong);
         }
-        .control-result-item.best-rank { border-left-color: var(--warning); }
+        .control-result-item.cat-gemengd { border-left-color: var(--info); }
+        .control-result-item.cat-vrouwen { border-left-color: var(--accent); }
+        .control-result-item.cat-jeugd { border-left-color: var(--warning); }
+        .control-result-item.best-rank { border-left-width: 6px; }
         .control-result-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .control-result-actions {
+            display: flex; gap: 8px; align-items: flex-start; flex-shrink: 0;
+        }
         .control-result-time {
             font-family: 'Consolas', monospace; font-size: 1.1rem;
             font-weight: 700; color: var(--success); flex-shrink: 0;
         }
         .control-bar {
             flex-shrink: 0; display: flex; gap: 16px; align-items: stretch;
-            padding: 16px; margin-top: 16px; border: 1px solid #333; border-radius: 10px;
+            padding: 16px; margin-top: 16px; border: 1px solid var(--card-outline);
             border-top-width: 2px; background: var(--card);
+            box-shadow: 0 0 24px var(--neon-glow);
             transition: background 0.25s ease, border-color 0.25s ease;
         }
         .control-bar.state-idle {
-            background: var(--card); border-color: #333; border-top-color: #333;
+            background: var(--card); border-color: var(--card-outline); border-top-color: var(--card-outline);
         }
         .control-bar.state-countdown {
-            background: rgba(241, 196, 15, 0.1); border-color: rgba(241, 196, 15, 0.35);
-            border-top-color: var(--warning);
+            background: var(--accent-tint-soft); border-color: var(--accent-tint-border);
+            border-top-color: var(--accent);
         }
         .control-bar.state-racing {
-            background: rgba(46, 204, 113, 0.1); border-color: rgba(46, 204, 113, 0.35);
+            background: var(--success-tint); border-color: var(--success-tint-mid);
             border-top-color: var(--success);
         }
         .control-bar-actions {
-            display: flex; gap: 12px; align-items: center; flex-shrink: 0;
+            display: flex; gap: 12px; align-items: stretch;
+            flex: 1; min-width: 0;
         }
-        .control-bar .btn-action { margin: 0; padding: 18px 28px; font-size: 1.1rem; min-width: 140px; }
-        .control-bar .btn-undo { font-size: 0.95rem; padding: 16px 20px; min-width: 100px; }
+        .control-bar .btn-action,
+        .control-bar .btn-undo {
+            margin: 0; padding: 18px 28px; font-size: 1.1rem;
+            flex: 1; min-width: 0;
+        }
+        .control-bar .btn-undo { font-size: 0.95rem; padding: 16px 20px; }
         .btn-start { background: var(--success); color: white; }
         .btn-stop { background: var(--accent); color: white; }
-        .btn-undo { background: #2d3436; color: var(--warning); border: 2px solid var(--warning); }
+        .btn-undo { background: var(--undo-bg); color: var(--warning); border: 2px solid var(--warning); }
         .btn-undo:disabled { opacity: 0.35; cursor: not-allowed; }
         .mode-data-actions {
             display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
             margin-top: 40px; max-width: 720px;
         }
         .btn-data {
-            background: #2a2a2a; color: #ccc; font-size: 0.85rem;
-            border: 1px solid #444; padding: 12px 24px;
+            background: var(--surface); color: var(--text-secondary); font-size: 0.85rem;
+            border: 1px solid var(--border-strong); padding: 12px 24px;
         }
-        .btn-data:hover { border-color: var(--info); color: #fff; background: rgba(52,152,219,0.1); }
+        .btn-data:hover { border-color: var(--warning); color: var(--text); background: var(--warning-tint-soft); }
         .btn-reset {
-            background: none; color: #ff7675; font-size: 0.85rem;
-            border: 1px solid #444; padding: 12px 24px;
+            background: none; color: var(--accent); font-size: 0.85rem;
+            border: 1px solid var(--border-strong); padding: 12px 24px;
         }
-        .btn-reset:hover { border-color: #ff7675; background: rgba(255,118,117,0.08); }
+        .btn-reset:hover { border-color: var(--accent); background: var(--accent-tint-soft); }
         #backup-file-input { display: none; }
 
         /* --- DISPLAY MODE (flexible, matches manager / control) --- */
         #display-panel {
-            width: 100%; height: 100vh; box-sizing: border-box;
+            width: 100%; height: 100vh; height: 100dvh; box-sizing: border-box;
             display: flex; flex-direction: column; gap: 16px;
-            padding: 20px 24px; overflow: hidden; position: relative;
+            padding: 20px 24px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            overflow: hidden; position: relative;
         }
         .display-columns {
             display: grid; grid-template-columns: 2fr 1fr;
             gap: 16px; flex: 1; min-height: 0;
         }
         .display-col {
-            background: var(--card); border: 1px solid #333; border-radius: 10px;
+            background: var(--card); border: 1px solid var(--card-outline);
             padding: 16px; display: flex; flex-direction: column; min-height: 0;
+            box-shadow: 0 0 24px var(--neon-glow);
         }
         .display-col-list { flex: 1; overflow-y: auto; min-height: 0; }
         #display-live {
@@ -365,11 +423,11 @@
         }
         #display-status-pill {
             font-size: 1rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 4px; padding: 8px 24px; border-radius: 50px;
-            border: 2px solid #333; color: #666; margin-bottom: 20px;
+            letter-spacing: 4px; padding: 8px 24px;
+            border: 2px solid var(--border); color: var(--muted-dim); margin-bottom: 20px;
         }
         #display-status-pill.racing { color: var(--success); border-color: var(--success); }
-        #display-status-pill.idle { color: #666; }
+        #display-status-pill.idle { color: var(--muted-dim); }
         #display-live .team-line {
             justify-content: center; margin-bottom: 16px; max-width: 100%;
         }
@@ -385,10 +443,11 @@
             line-height: 1;
         }
         #main-timer.live { color: var(--success); }
-        #main-timer.dim { color: #333; }
+        #main-timer.dim { color: var(--border); }
         .display-next-block {
-            flex-shrink: 0; background: var(--card); border: 1px solid #333;
-            border-radius: 10px; padding: clamp(1rem, 2vw, 1.75rem) 20px;
+            flex-shrink: 0; background: var(--card); border: 1px solid var(--card-outline);
+            padding: clamp(1rem, 2vw, 1.75rem) 20px;
+            box-shadow: 0 0 24px var(--neon-glow);
         }
         #display-next-up.hidden { display: none; }
         .display-next-row {
@@ -396,17 +455,20 @@
             gap: clamp(16px, 3vw, 36px); flex-wrap: wrap;
         }
         .display-next-label {
-            flex-shrink: 0; font-size: clamp(1.25rem, 2.5vw, 2rem); color: #888;
+            flex-shrink: 0; font-size: clamp(1.25rem, 2.5vw, 2rem); color: var(--muted);
             text-transform: uppercase; letter-spacing: 0.2em;
             font-weight: 700; white-space: nowrap;
         }
         #display-next-up .team-line {
             justify-content: center; gap: clamp(12px, 2vw, 20px); min-width: 0;
         }
+        #display-next-up-cat,
+        #display-next-after-cat { display: none; }
         #display-next-up-name {
             font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 800;
             color: var(--warning); text-transform: uppercase;
             word-break: break-word; line-height: 1.1; text-align: left;
+            text-shadow: 0 0 30px var(--neon-glow);
         }
 
         #display-panel.display-countdown .display-columns,
@@ -414,58 +476,307 @@
 
         #countdown-overlay {
             position: fixed; inset: 0;
-            background: var(--bg);
+            background: var(--overlay-bg);
             display: none; align-items: center; justify-content: center;
-            flex-direction: column; z-index: 200;
+            flex-direction: column; gap: clamp(1.5rem, 4vw, 3rem);
+            z-index: 200;
+            transition: background 0.2s ease;
         }
         #countdown-overlay.visible { display: flex; }
         #countdown-overlay .team-line {
-            justify-content: center; margin-bottom: clamp(1rem, 4vw, 2.5rem); max-width: 90vw;
+            justify-content: center; max-width: 90vw;
         }
+        .countdown-team-block { text-align: center; }
         #countdown-team-name {
-            font-size: clamp(2rem, 6vw, 4.5rem); font-weight: 800;
+            font-size: clamp(1.75rem, 5vw, 3.5rem); font-weight: 800;
             text-transform: uppercase; letter-spacing: 2px;
-            text-align: center; line-height: 1.1; word-break: break-word;
+            line-height: 1.1; word-break: break-word;
         }
-        #countdown-number {
-            font-size: clamp(6rem, 28vw, 16rem); font-weight: 900; line-height: 0.9;
-            color: var(--warning);
-        }
-        #countdown-label {
-            font-size: clamp(1rem, 3vw, 2rem); letter-spacing: 0.5em;
-            text-transform: uppercase; color: #666; margin-top: 1rem;
-        }
-        #countdown-overlay.go #countdown-number { color: var(--success); }
-        #countdown-overlay.go #countdown-label { color: var(--success); }
 
-        #sound-prompt {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: var(--card); border: 1px solid #444;
-            padding: 12px 24px; border-radius: 8px; font-size: 0.9rem;
-            color: #aaa; cursor: pointer; z-index: 210;
+        .f1-light-panel {
+            display: flex; align-items: center; justify-content: center;
+            gap: clamp(10px, 2.5vw, 22px);
+            padding: clamp(16px, 3vw, 28px) clamp(20px, 4vw, 40px);
+            background: linear-gradient(180deg, #141008 0%, #0a0804 100%);
+            border: 3px solid color-mix(in srgb, var(--warning) 30%, #141008);
+            box-shadow: 0 0 20px var(--neon-glow), inset 0 1px 0 color-mix(in srgb, var(--warning) 14%, transparent);
         }
-        #sound-prompt:hover { border-color: var(--warning); color: #fff; }
+        .f1-light {
+            width: clamp(44px, 11vw, 72px);
+            height: clamp(44px, 11vw, 72px);
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 55%, #0c0a06 0%, #060504 100%);
+            border: 3px solid color-mix(in srgb, var(--warning) 20%, #0c0a06);
+            box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.7);
+            transition: background 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+        }
+        .f1-light.on {
+            background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--accent) 55%, white) 0%, var(--accent) 45%, color-mix(in srgb, var(--accent) 75%, black) 100%);
+            border-color: var(--accent);
+            box-shadow:
+                0 0 20px color-mix(in srgb, var(--accent) 90%, transparent),
+                0 0 40px color-mix(in srgb, var(--accent) 45%, transparent),
+                inset 0 -3px 8px rgba(0, 0, 0, 0.25);
+            transform: scale(1.02);
+        }
+        .f1-light-panel--compact {
+            padding: 8px 12px;
+            gap: 6px;
+            border-width: 2px;
+            box-shadow: none;
+        }
+        .f1-light-panel--compact .f1-light {
+            width: 14px; height: 14px;
+            border-width: 1px;
+        }
+        .f1-light-panel--compact .f1-light.on {
+            box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 85%, transparent);
+            transform: none;
+        }
+        .f1-light-panel.lights-go .f1-light.on {
+            background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--success) 55%, white) 0%, var(--success) 45%, color-mix(in srgb, var(--success) 75%, black) 100%);
+            border-color: var(--success);
+            box-shadow:
+                0 0 20px color-mix(in srgb, var(--success) 90%, transparent),
+                0 0 40px color-mix(in srgb, var(--success) 45%, transparent),
+                inset 0 -3px 8px rgba(0, 0, 0, 0.25);
+            transform: scale(1.02);
+        }
+        .f1-light-panel--compact.lights-go .f1-light.on {
+            box-shadow: 0 0 8px color-mix(in srgb, var(--success) 85%, transparent);
+            transform: none;
+        }
+
+        #countdown-status {
+            font-size: clamp(3rem, 14vw, 7rem);
+            font-weight: 900; letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: transparent;
+            min-height: 1.1em;
+            line-height: 1;
+        }
+        #countdown-overlay.go {
+            background: var(--success-tint-strong);
+        }
+        #countdown-overlay.go #countdown-status {
+            color: var(--success);
+            text-shadow: 0 0 40px var(--success-glow);
+        }
+
+        #control-f1-lights { flex-shrink: 0; }
+        #control-f1-lights.hidden { display: none; }
 
         #connection-status {
             position: fixed; top: 8px; right: 8px; z-index: 3000;
-            font-size: 0.75rem; padding: 6px 12px; border-radius: 6px;
-            background: var(--card); border: 1px solid #444; color: #888;
+            font-size: 0.75rem; padding: 6px 12px;
+            background: var(--card); border: 1px solid var(--border-strong); color: var(--muted);
         }
         #connection-status.connected { border-color: var(--success); color: var(--success); }
         #connection-status.disconnected { border-color: var(--accent); color: var(--accent); }
         #connection-status.hidden-status { display: none; }
 
-        #display-fullscreen-btn {
-            position: fixed; top: 12px; left: 12px; z-index: 210;
-            background: rgba(30,30,30,0.85); border: 1px solid #444;
-            color: #aaa; padding: 10px 14px; border-radius: 8px;
-            font-size: 0.8rem; cursor: pointer;
+        #manager-panel,
+        #control-panel,
+        #display-panel { position: relative; }
+
+        .panel-toolbar {
+            flex-shrink: 0; display: flex; justify-content: flex-end;
+            margin-bottom: 8px;
+            padding: 8px;
+            border: 1px solid var(--card-outline);
+            transition: transform 0.25s ease, opacity 0.25s ease;
         }
-        #display-fullscreen-btn:hover { color: #fff; border-color: #666; }
+
+        .toolbar-fs-active .panel-toolbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 12px 24px; margin: 0;
+            z-index: 400;
+            background: var(--toolbar-bg);
+            justify-content: flex-end;
+        }
+
+        .toolbar-fs-active .panel-toolbar.toolbar-collapsed {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #toolbar-reveal-zone {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            z-index: 399;
+            display: none;
+        }
+        #toolbar-reveal-zone.active { display: block; }
+
+        /* iOS / browsers without native fullscreen — fixed viewport cover */
+        html.immersive-active {
+            overflow: hidden;
+            height: 100%;
+            height: -webkit-fill-available;
+        }
+        html.immersive-active body {
+            overflow: hidden;
+            min-height: 100%;
+            min-height: 100dvh;
+            min-height: -webkit-fill-available;
+        }
+        html.immersive-active #manager-panel:not(.hidden),
+        html.immersive-active #control-panel:not(.hidden),
+        html.immersive-active #display-panel:not(.hidden) {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            height: -webkit-fill-available;
+            margin: 0;
+            padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+                     max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+            box-sizing: border-box;
+        }
+
+        .panel-actions {
+            display: flex; gap: 8px; flex-shrink: 0;
+        }
+
+        .panel-action-btn {
+            flex-shrink: 0; padding: 8px 14px;
+            border: 1px solid var(--panel-action-border); background: var(--panel-action-bg);
+            color: var(--panel-action-text); font-size: 0.8rem; cursor: pointer;
+            font-family: inherit; white-space: nowrap; text-decoration: none;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .panel-action-btn:hover {
+            color: var(--panel-action-text-hover);
+            border-color: var(--panel-action-border-hover);
+            background: var(--panel-action-bg-hover);
+        }
+        .panel-action-btn.sound-btn:hover { border-color: var(--warning); color: var(--text); }
+        .panel-action-btn.sound-btn.active {
+            border-color: var(--warning); color: var(--warning);
+            background: var(--warning-tint);
+        }
 
         @media (pointer: coarse) {
-            .control-bar .btn-action { min-width: 120px; padding: 22px 24px; font-size: 1.15rem; }
-            .control-bar .btn-undo { min-width: 110px; padding: 20px 18px; }
+            .control-bar .btn-action,
+            .control-bar .btn-undo { padding: 22px 24px; font-size: 1.15rem; }
+            .control-bar .btn-undo { padding: 20px 18px; }
+        }
+
+        /* --- Portrait / narrow vertical layouts (iPad official, phones) --- */
+        @media (orientation: portrait), (max-width: 820px) {
+            #manager-panel,
+            #control-panel,
+            #display-panel {
+                padding: 12px 16px;
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
+                gap: 10px;
+            }
+
+            .panel-toolbar { margin-bottom: 4px; }
+            .panel-actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                gap: 6px;
+                max-width: 100%;
+            }
+            .panel-action-btn {
+                padding: 10px 12px;
+                font-size: 0.75rem;
+            }
+
+            .manager-columns,
+            .control-columns,
+            .display-columns {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .manager-columns .manager-col,
+            .control-columns .control-col,
+            .display-columns .display-col {
+                min-height: 0;
+            }
+
+            /* Official: pending queue first, more room for timing controls */
+            .control-columns {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                min-height: 0;
+            }
+            .control-col-pending { order: -1; flex: 1.15; min-height: 0; }
+            .control-col-past { flex: 0.85; min-height: 0; max-height: 28vh; }
+
+            .control-bar {
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 10px;
+                padding: 12px;
+            }
+            #control-live {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: center;
+                padding-right: 0;
+                gap: 8px 12px;
+                text-align: center;
+            }
+            #control-live-name {
+                font-size: clamp(1rem, 4.5vw, 1.25rem);
+            }
+            #control-live-timer {
+                font-size: clamp(1.5rem, 7vw, 2rem);
+                width: 100%;
+                text-align: center;
+            }
+            .control-bar-actions {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .control-bar-actions > .btn-action,
+            .control-bar-actions > .btn-undo {
+                width: 100%;
+                min-width: 0;
+                grid-column: 1 / -1;
+            }
+
+            .manager-bar { flex-direction: column; }
+            .add-form {
+                flex-wrap: wrap;
+            }
+            .add-field.grow { flex: 1 1 100%; }
+            .add-field-category,
+            .add-field-composition,
+            .add-field-check,
+            .add-field-action {
+                flex: 1 1 calc(50% - 6px);
+                width: auto;
+            }
+            .add-field-composition.is-jeugd { width: auto; }
+
+            .manager-columns .manager-col-pending { order: -1; }
+            .manager-columns .manager-col-finished { max-height: 32vh; }
+
+            .display-columns .display-col:first-child { min-height: 38vh; }
+            .display-columns .display-col:last-child { max-height: 28vh; }
+
+            #main-timer {
+                font-size: clamp(2.5rem, 14vw, 4.5rem);
+            }
+            #display-live-name {
+                font-size: clamp(1.25rem, 5vw, 2rem);
+            }
+            #display-next-up-name {
+                font-size: clamp(1.5rem, 6vw, 2.5rem);
+            }
         }
 
     </style>
@@ -473,13 +784,19 @@
 <body>
 
     <div id="connection-status" class="disconnected">Connecting…</div>
+    <div id="toolbar-reveal-zone" aria-hidden="true"></div>
+    <div id="panel-actions" class="panel-actions hidden">
+        <a href="/" class="panel-action-btn">⚙ Settings</a>
+        <button type="button" class="panel-action-btn sound-btn hidden" id="sound-prompt" title="Enable countdown sounds">🔊 Sound</button>
+        <button type="button" class="panel-action-btn" id="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+    </div>
 
     <div id="mode-selection">
         <h1 style="font-size: 3rem;">Go-Kart Pro</h1>
         <p class="mode-hint">Open each role on a separate device over your local network. The host shows the public display, a laptop manages teams, and an iPad runs timing.</p>
-        <button class="mode-btn" style="background: var(--info); color: white;" onclick="setMode('manager')">Manager (Lineup)</button>
+        <button class="mode-btn" style="background: var(--warning); color: #000000;" onclick="setMode('manager')">Manager (Lineup)</button>
         <button class="mode-btn" style="background: var(--success); color: white;" onclick="setMode('control')">Official (Timing)</button>
-        <button class="mode-btn" style="background: #666; color: white;" onclick="setMode('display')">Display (Public)</button>
+        <button class="mode-btn" style="background: var(--muted-dim); color: white;" onclick="setMode('display')">Display (Public)</button>
         <div class="mode-data-actions">
             <button class="btn-data" onclick="backupRaceData()">Backup Race Data</button>
             <button class="btn-data" onclick="document.getElementById('backup-file-input').click()">Load Race Data</button>
@@ -489,6 +806,9 @@
     </div>
 
     <div id="manager-panel" class="hidden">
+        <div class="panel-toolbar">
+            <div id="panel-actions-slot-manager"></div>
+        </div>
         <div class="manager-columns">
             <section class="manager-col manager-col-pending">
                 <h3 class="col-title">Pending</h3>
@@ -540,8 +860,11 @@
     </div>
 
     <div id="control-panel" class="hidden">
+        <div class="panel-toolbar">
+            <div id="panel-actions-slot-control"></div>
+        </div>
         <div class="control-columns">
-            <section class="control-col">
+            <section class="control-col control-col-past">
                 <h3 class="col-title">Past Races</h3>
                 <div class="control-sort-bar">
                     <button type="button" id="sort-recent" class="sort-btn active" onclick="setControlResultsSort('recent')">Last Races</button>
@@ -549,7 +872,7 @@
                 </div>
                 <div id="control-list-finished" class="control-col-list"></div>
             </section>
-            <section class="control-col">
+            <section class="control-col control-col-pending">
                 <h3 class="col-title">Pending</h3>
                 <div id="control-list-pending" class="control-col-list"></div>
             </section>
@@ -563,6 +886,13 @@
                         <div id="control-live-name">—</div>
                     </div>
                 </div>
+                <div id="control-f1-lights" class="f1-light-panel f1-light-panel--compact hidden" aria-hidden="true">
+                    <div class="f1-light"></div>
+                    <div class="f1-light"></div>
+                    <div class="f1-light"></div>
+                    <div class="f1-light"></div>
+                    <div class="f1-light"></div>
+                </div>
                 <div id="control-live-timer" class="dim">00:00.000</div>
             </div>
             <div class="control-bar-actions">
@@ -574,6 +904,9 @@
     </div>
 
     <div id="display-panel" class="hidden">
+        <div class="panel-toolbar">
+            <div id="panel-actions-slot-display"></div>
+        </div>
         <div class="display-columns">
             <section class="display-col">
                 <h3 class="col-title">Current Run</h3>
@@ -610,15 +943,21 @@
             </div>
         </section>
         <div id="countdown-overlay">
-            <div class="team-line">
-                <div id="countdown-team-cat"></div>
-                <div id="countdown-team-name"></div>
+            <div class="countdown-team-block">
+                <div class="team-line">
+                    <div id="countdown-team-cat"></div>
+                    <div id="countdown-team-name"></div>
+                </div>
             </div>
-            <div id="countdown-number">5</div>
-            <div id="countdown-label">Get Ready</div>
+            <div id="countdown-f1-lights" class="f1-light-panel" aria-label="Race start lights">
+                <div class="f1-light"></div>
+                <div class="f1-light"></div>
+                <div class="f1-light"></div>
+                <div class="f1-light"></div>
+                <div class="f1-light"></div>
+            </div>
+            <div id="countdown-status"></div>
         </div>
-        <div id="sound-prompt">🔊 Click to enable sound</div>
-        <button type="button" id="display-fullscreen-btn" class="hidden" onclick="toggleDisplayFullscreen()">⛶ Fullscreen</button>
     </div>
 
     <script>
@@ -701,6 +1040,7 @@
         const STORAGE_KEY = 'kart_session_data';
         const BACKUP_VERSION = 1;
         const COUNTDOWN_SEC = 5;
+        const GO_HOLD_MS = 1500;
         const ADULT_TEAM_SIZE = 4;
         const JEUGD_TEAM_SIZE = 2;
         const WOMAN_BONUS_SEC = 5;
@@ -716,6 +1056,7 @@
         /** @type {'display'|'manager'|'control'|'home'|''} */
         let wsRole = '';
         let wsConnected = false;
+        let wsReady = false;
         let wsReconnectTimer = null;
         let mode = '';
         let displayLoopId = null;
@@ -726,6 +1067,10 @@
         /** @type {'recent'|'best'} */
         let managerResultsSort = 'recent';
         let undoSnapshot = null;
+        /** Keep local undo until the server confirms it (avoids null broadcast wiping the button). */
+        let undoPendingServer = false;
+        /** True after the server has sent session state (don't overwrite with localStorage). */
+        let serverSessionReady = false;
         let soundEnabled = false;
         let audioCtx = null;
         /** Dedupes countdown beeps across tabs/frames */
@@ -1055,15 +1400,28 @@
         }
 
         /** Load session from storage, channel, or backup. @param {Session|null|undefined} data */
-        function applySession(data) {
+        function applySession(data, { fromServer = false } = {}) {
             if (!data) return;
-            raceState = data.raceState ?? 'IDLE';
-            raceStartTime = toMs(data.raceStartTime);
-            countdownEnd = toMs(data.countdownEnd);
-            const raw = data.teams ?? data.drivers;
+            if (fromServer) serverSessionReady = true;
+            const { undoSnapshot: serverUndo, ...raceData } = data;
+            if (fromServer) {
+                if (serverUndo != null) {
+                    undoSnapshot = serverUndo;
+                    undoPendingServer = false;
+                } else if (!undoPendingServer) {
+                    undoSnapshot = null;
+                }
+            } else if (serverUndo != null) {
+                undoSnapshot = serverUndo;
+            }
+            raceState = raceData.raceState ?? 'IDLE';
+            raceStartTime = toMs(raceData.raceStartTime);
+            countdownEnd = toMs(raceData.countdownEnd);
+            const raw = raceData.teams ?? raceData.drivers;
             teams = Array.isArray(raw) ? raw.map(normalizeTeam) : [];
+            if (raceState !== 'COUNTDOWN') clearCountdownTimer();
+            if (mode === 'control') updateUndoButton();
             renderUI();
-            // Control tab must own the countdown interval (re-open / sync case)
             if (mode === 'control' && raceState === 'COUNTDOWN' && countdownEnd) {
                 armCountdownTimer();
             }
@@ -1075,17 +1433,171 @@
             el.classList.toggle('connected', wsConnected);
             el.classList.toggle('disconnected', !wsConnected);
             el.textContent = wsConnected ? 'Connected' : 'Reconnecting…';
-            const hideWhenOk = mode === 'display' || mode === 'control';
+            const hideWhenOk = mode === 'display' || mode === 'control' || mode === 'manager';
             el.classList.toggle('hidden-status', hideWhenOk && wsConnected);
         }
 
-        function toggleDisplayFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen?.().catch(() => {});
-            } else {
-                document.exitFullscreen?.().catch(() => {});
+        function isNativeFullscreen() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement);
+        }
+
+        function isFullscreen() {
+            return isNativeFullscreen() || immersiveMode;
+        }
+
+        /** iPhone Safari does not support the Fullscreen API — use CSS immersive cover. */
+        function prefersImmersiveFullscreen() {
+            return /iPhone|iPod/i.test(navigator.userAgent);
+        }
+
+        function setImmersiveMode(on) {
+            immersiveMode = on;
+            document.documentElement.classList.toggle('immersive-active', on);
+            if (on) {
+                window.scrollTo(0, 0);
+            }
+            syncToolbarFullscreen();
+        }
+
+        function getActivePanel() {
+            const panelIds = { manager: 'manager-panel', control: 'control-panel', display: 'display-panel' };
+            return document.getElementById(panelIds[mode]) ?? null;
+        }
+
+        function getActiveToolbar() {
+            return getActivePanel()?.querySelector('.panel-toolbar') ?? null;
+        }
+
+        let toolbarHideTimer = null;
+        let touchRevealStartY = null;
+        let immersiveMode = false;
+
+        function clearToolbarHideTimer() {
+            if (toolbarHideTimer != null) {
+                clearTimeout(toolbarHideTimer);
+                toolbarHideTimer = null;
             }
         }
+
+        function scheduleToolbarHide() {
+            clearToolbarHideTimer();
+            toolbarHideTimer = setTimeout(() => {
+                if (isFullscreen()) collapseToolbar();
+            }, 1000);
+        }
+
+        function collapseToolbar() {
+            const toolbar = getActiveToolbar();
+            if (!toolbar || !isFullscreen()) return;
+            toolbar.classList.add('toolbar-collapsed');
+        }
+
+        function revealToolbar() {
+            const toolbar = getActiveToolbar();
+            if (!toolbar || !isFullscreen()) return;
+            toolbar.classList.remove('toolbar-collapsed');
+            scheduleToolbarHide();
+        }
+
+        function syncToolbarFullscreen() {
+            const panelIds = ['manager-panel', 'control-panel', 'display-panel'];
+            for (const id of panelIds) {
+                document.getElementById(id)?.classList.remove('toolbar-fs-active');
+            }
+
+            const panel = getActivePanel();
+            const toolbar = getActiveToolbar();
+            const zone = document.getElementById('toolbar-reveal-zone');
+
+            if (isFullscreen() && panel && toolbar) {
+                panel.classList.add('toolbar-fs-active');
+                zone?.classList.add('active');
+                collapseToolbar();
+            } else {
+                zone?.classList.remove('active');
+                toolbar?.classList.remove('toolbar-collapsed');
+                clearToolbarHideTimer();
+            }
+            updateFullscreenButton();
+        }
+
+        function placePanelActions() {
+            const bar = document.getElementById('panel-actions');
+            const slotId = mode === 'manager' ? 'panel-actions-slot-manager'
+                : mode === 'control' ? 'panel-actions-slot-control'
+                : mode === 'display' ? 'panel-actions-slot-display'
+                : null;
+            if (!bar || !slotId) return;
+            const slot = document.getElementById(slotId);
+            if (slot) slot.appendChild(bar);
+            bar.classList.remove('hidden');
+            updateFullscreenButton();
+            updateSoundPrompt();
+            syncToolbarFullscreen();
+        }
+
+        function updateFullscreenButton() {
+            const btn = document.getElementById('fullscreen-btn');
+            if (!btn) return;
+            btn.textContent = isFullscreen() ? '⛶ Exit fullscreen' : '⛶ Fullscreen';
+        }
+
+        function toggleFullscreen() {
+            if (isNativeFullscreen()) {
+                const exit = document.exitFullscreen?.() ?? document.webkitExitFullscreen?.();
+                if (exit && typeof exit.catch === 'function') exit.catch(() => {});
+                return;
+            }
+            if (immersiveMode) {
+                setImmersiveMode(false);
+                return;
+            }
+            if (prefersImmersiveFullscreen()) {
+                setImmersiveMode(true);
+                return;
+            }
+            const el = document.documentElement;
+            const req = el.requestFullscreen?.() ?? el.webkitRequestFullscreen?.();
+            if (req && typeof req.then === 'function') {
+                req.then(() => syncToolbarFullscreen()).catch(() => setImmersiveMode(true));
+                return;
+            }
+            setImmersiveMode(true);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!isNativeFullscreen() && immersiveMode) return;
+            syncToolbarFullscreen();
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            if (!isNativeFullscreen() && immersiveMode) return;
+            syncToolbarFullscreen();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isFullscreen()) return;
+            if (e.clientY <= 56) revealToolbar();
+        });
+
+        const toolbarRevealZone = document.getElementById('toolbar-reveal-zone');
+        toolbarRevealZone?.addEventListener('touchstart', (e) => {
+            if (!isFullscreen()) return;
+            touchRevealStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isFullscreen() || touchRevealStartY == null) return;
+            if (e.touches[0].clientY - touchRevealStartY > 28) revealToolbar();
+        }, { passive: true });
+
+        document.addEventListener('touchend', () => {
+            touchRevealStartY = null;
+        });
+
+        document.addEventListener('mouseover', (e) => {
+            if (!isFullscreen()) return;
+            if (e.target.closest?.('.panel-toolbar')) clearToolbarHideTimer();
+        });
 
         function wsUrl() {
             const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -1118,6 +1630,7 @@
 
             ws.onopen = () => {
                 wsConnected = true;
+                wsReady = false;
                 updateConnectionStatus();
                 ws.send(JSON.stringify({ type: 'hello', role }));
             };
@@ -1126,13 +1639,15 @@
                 let msg;
                 try { msg = JSON.parse(event.data); } catch { return; }
                 if (msg.type === 'session') {
-                    applySession(msg.session);
+                    wsReady = true;
+                    applySession(msg.session, { fromServer: true });
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(msg.session));
                 }
             };
 
             ws.onclose = () => {
                 wsConnected = false;
+                wsReady = false;
                 updateConnectionStatus();
                 scheduleReconnect();
             };
@@ -1147,14 +1662,19 @@
         function sync() {
             const data = getSession();
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'update', session: data }));
+            if (ws && ws.readyState === WebSocket.OPEN && wsReady) {
+                const msg = { type: 'update', session: data };
+                if (mode === 'control' && undoPendingServer && undoSnapshot) {
+                    msg.undoBefore = undoSnapshot;
+                }
+                ws.send(JSON.stringify(msg));
             }
             renderUI();
         }
 
         /** Hydrate from localStorage cache while waiting for server. */
         function loadFromStorage() {
+            if (serverSessionReady) return;
             const saved = localStorage.getItem(STORAGE_KEY);
             if (!saved) return;
             try {
@@ -1313,6 +1833,10 @@
 
         bootFromUrl();
 
+        document.getElementById('sound-prompt')?.addEventListener('click', () => {
+            enableSound();
+        });
+
         // --- Undo (recover accidental Start / GO / Stop) -------------------------
 
         function pushUndo() {
@@ -1322,11 +1846,13 @@
                 countdownEnd,
                 teams: JSON.parse(JSON.stringify(teams)),
             };
+            undoPendingServer = true;
             updateUndoButton();
         }
 
         function clearUndo() {
             undoSnapshot = null;
+            undoPendingServer = false;
             updateUndoButton();
         }
 
@@ -1340,20 +1866,18 @@
             }
         }
 
-        function controlUndo() {
-            if (!undoSnapshot) return;
+        function applyLocalUndo() {
+            if (!undoSnapshot) return false;
             clearCountdownTimer();
             raceState = undoSnapshot.raceState;
             raceStartTime = undoSnapshot.raceStartTime;
             countdownEnd = undoSnapshot.countdownEnd;
             teams = undoSnapshot.teams ?? undoSnapshot.drivers ?? [];
 
-            // Never re-enter countdown on undo — IDLE is the safe recovery state
             if (raceState === 'COUNTDOWN') {
                 raceState = 'IDLE';
                 countdownEnd = null;
             }
-            // Ensure no stray racing team when undoing an accidental GO
             if (raceState === 'IDLE') {
                 teams.forEach((t) => {
                     if (t.status === 'racing') {
@@ -1365,9 +1889,20 @@
             }
 
             clearUndo();
+            return true;
+        }
+
+        function controlUndo() {
+            if (!undoSnapshot) return;
+            undoPendingServer = false;
+            clearCountdownTimer();
             lastSoundKey = '';
             if (soundEnabled) playCancel();
-            sync();
+            if (ws && ws.readyState === WebSocket.OPEN && wsReady) {
+                ws.send(JSON.stringify({ type: 'undo' }));
+            } else if (applyLocalUndo()) {
+                sync();
+            }
         }
 
         // --- Sound (Web Audio — no external files) -------------------------------
@@ -1378,10 +1913,18 @@
             return Promise.resolve();
         }
 
+        function updateSoundPrompt() {
+            const prompt = document.getElementById('sound-prompt');
+            if (!prompt) return;
+            prompt.classList.toggle('hidden', mode !== 'display');
+            prompt.classList.toggle('active', soundEnabled);
+            prompt.textContent = soundEnabled ? '🔊 Sound on' : '🔊 Sound';
+            prompt.title = soundEnabled ? 'Sound enabled' : 'Enable countdown sounds';
+        }
+
         function enableSound() {
             soundEnabled = true;
-            const prompt = document.getElementById('sound-prompt');
-            if (prompt) prompt.classList.add('hidden');
+            updateSoundPrompt();
             ensureAudio();
         }
 
@@ -1400,16 +1943,29 @@
             osc.stop(t0 + duration);
         }
 
-        function playCountdownTick(n) {
-            // Rising pitch as countdown approaches zero
-            const base = 280 + (COUNTDOWN_SEC - n) * 80;
-            playTone(base, 0.12, 0.3, 'square');
+        /** F1 starting lights: same beep every second. */
+        function playCountdownTick(_n) {
+            playTone(820, 0.085, 0.32, 'square');
         }
 
+        /** Lights out — clearly different from the countdown beeps. */
         function playGo() {
-            playTone(523, 0.18, 0.35, 'sine');
-            setTimeout(() => playTone(784, 0.18, 0.35, 'sine'), 80);
-            setTimeout(() => playTone(1047, 0.35, 0.4, 'sine'), 160);
+            if (!soundEnabled || !audioCtx) return;
+            const t0 = audioCtx.currentTime;
+            const duration = 0.4;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, t0);
+            osc.frequency.exponentialRampToValueAtTime(440, t0 + 0.08);
+            gain.gain.setValueAtTime(0.001, t0);
+            gain.gain.linearRampToValueAtTime(0.38, t0 + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t0);
+            osc.stop(t0 + duration + 0.02);
         }
 
         function playCancel() {
@@ -1421,17 +1977,44 @@
             setTimeout(() => playTone(220, 0.25, 0.2, 'sine'), 100);
         }
 
+        /** @param {HTMLElement|null} panel @param {number} litCount 0–5 @param {boolean} [goGreen] */
+        function setF1Lights(panel, litCount, goGreen = false) {
+            if (!panel) return;
+            panel.classList.toggle('lights-go', goGreen);
+            panel.querySelectorAll('.f1-light').forEach((el, i) => {
+                el.classList.toggle('on', i < litCount);
+            });
+        }
+
+        /** @returns {{ remaining: number, lit: number, go: boolean }} */
+        function getCountdownPhase() {
+            if (!countdownEnd) return { remaining: 0, lit: 0, go: false };
+            const goAt = countdownEnd - GO_HOLD_MS;
+            const start = goAt - COUNTDOWN_SEC * 1000;
+            const now = Date.now();
+            if (now >= countdownEnd) return { remaining: 0, lit: 0, go: false };
+            if (now >= goAt) return { remaining: 0, lit: 5, go: true };
+            const elapsed = Math.max(0, now - start);
+            const step = Math.floor(elapsed / 1000);
+            return {
+                remaining: COUNTDOWN_SEC - step,
+                lit: Math.min(step + 1, COUNTDOWN_SEC),
+                go: false,
+            };
+        }
+
         /** Play countdown ticks on any tab that has sound enabled */
         function handleCountdownSounds() {
             if (!soundEnabled || raceState !== 'COUNTDOWN' || !countdownEnd) return;
-            const remaining = Math.ceil((countdownEnd - Date.now()) / 1000);
-            if (remaining > 0) {
-                const key = `tick-${countdownEnd}-${remaining}`;
+            const phase = getCountdownPhase();
+            if (!phase.go && phase.remaining > 0) {
+                const step = COUNTDOWN_SEC - phase.remaining;
+                const key = `tick-${countdownEnd}-${step}`;
                 if (lastSoundKey !== key) {
                     lastSoundKey = key;
-                    playCountdownTick(remaining);
+                    playCountdownTick(phase.remaining);
                 }
-            } else {
+            } else if (phase.go) {
                 const key = `go-${countdownEnd}`;
                 if (lastSoundKey !== key) {
                     lastSoundKey = key;
@@ -1450,27 +2033,22 @@
             ['manager-panel', 'control-panel', 'display-panel'].forEach((id) => {
                 document.getElementById(id).classList.add('hidden');
             });
+            document.getElementById('panel-actions')?.classList.add('hidden');
 
             if (mode === 'manager') {
                 document.getElementById('manager-panel').classList.remove('hidden');
                 initManagerPanel();
+                placePanelActions();
             } else if (mode === 'control') {
                 document.getElementById('control-panel').classList.remove('hidden');
                 updateUndoButton();
                 startControlLoop();
                 if (raceState === 'COUNTDOWN' && countdownEnd) armCountdownTimer();
+                placePanelActions();
             } else {
                 document.getElementById('display-panel').classList.remove('hidden');
-                document.getElementById('display-fullscreen-btn')?.classList.remove('hidden');
+                placePanelActions();
                 startDisplayLoop();
-                const prompt = document.getElementById('sound-prompt');
-                if (prompt) {
-                    prompt.classList.toggle('hidden', soundEnabled);
-                    prompt.onclick = () => {
-                        enableSound();
-                        toggleDisplayFullscreen();
-                    };
-                }
             }
 
             loadFromStorage();
@@ -1816,10 +2394,16 @@
             if (!next || raceState !== 'COUNTDOWN' || !countdownEnd) return;
 
             countdownTimerId = setInterval(() => {
+                if (raceState !== 'COUNTDOWN' || !countdownEnd) {
+                    clearCountdownTimer();
+                    return;
+                }
                 if (Date.now() >= countdownEnd) {
                     clearCountdownTimer();
-                    pushUndo();
-                    beginRacingRun(next);
+                    if (raceState === 'COUNTDOWN') {
+                        pushUndo();
+                        beginRacingRun(next);
+                    }
                 } else {
                     renderControl();
                     handleCountdownSounds();
@@ -1829,6 +2413,7 @@
 
         /** @param {Team} team */
         function beginRacingRun(team) {
+            if (raceState === 'RACING') return;
             raceState = 'RACING';
             countdownEnd = null;
             raceStartTime = Date.now();
@@ -1846,7 +2431,7 @@
             pushUndo();
             clearCountdownTimer();
             raceState = 'COUNTDOWN';
-            countdownEnd = Date.now() + COUNTDOWN_SEC * 1000;
+            countdownEnd = Date.now() + COUNTDOWN_SEC * 1000 + GO_HOLD_MS;
             lastSoundKey = '';
             sync();
             armCountdownTimer();
@@ -1945,10 +2530,12 @@
             return controls;
         }
 
-        function renderPendingRow(t) {
+        function renderPendingRow(t, isNext) {
+            const cat = CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY;
             const div = document.createElement('div');
-            div.className = 'team-item pending';
+            div.className = `team-item pending cat-${cat}${isNext ? ' next-up' : ''}`;
             div.dataset.teamId = String(t.id);
+            div.title = categoryLabel(cat);
 
             const handle = document.createElement('span');
             handle.className = 'drag-handle';
@@ -1957,38 +2544,44 @@
             handle.setAttribute('aria-label', 'Drag to reorder');
             handle.textContent = '⠿';
 
-            div.append(handle, buildTeamLabel(t, { showCategory: false }), buildPendingControls(t));
+            div.append(handle, buildTeamLabel(t, { showCategory: false, showComposition: false }), buildPendingControls(t));
             return div;
         }
 
         function renderRacingRow(t) {
             const div = document.createElement('div');
             div.className = 'team-item racing';
-            div.appendChild(buildTeamLabel(t));
+            div.appendChild(buildTeamLabel(t, { showCategory: false }));
             return div;
         }
 
         function renderFinishedRow(t, rank, isBestSort) {
+            const cat = CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY;
             const div = document.createElement('div');
-            div.className = `team-item finished${isBestSort && rank === 1 ? ' best-rank' : ''}`;
+            div.className = `control-result-item cat-${cat}${isBestSort && rank === 1 ? ' best-rank' : ''}`;
+            div.title = categoryLabel(cat);
 
             const top = document.createElement('div');
-            top.className = 'team-item-top';
-            top.appendChild(buildTeamLabel(t));
+            top.className = 'control-result-top';
+            top.appendChild(buildTeamLabel(t, { showCategory: false, showComposition: false }));
+
+            const actions = document.createElement('div');
+            actions.className = 'control-result-actions';
+
+            const time = document.createElement('span');
+            time.className = 'control-result-time';
+            time.textContent = formatTime(t.totalTime);
+            actions.appendChild(time);
 
             const del = document.createElement('button');
             del.className = 'btn-del';
             del.textContent = '✕';
             del.title = 'Remove from results';
             del.onclick = () => managerDel(t.id);
-            top.appendChild(del);
+            actions.appendChild(del);
+
+            top.appendChild(actions);
             div.appendChild(top);
-
-            const time = document.createElement('div');
-            time.className = 'team-result-time';
-            time.textContent = formatTime(t.totalTime);
-            div.appendChild(time);
-
             return div;
         }
 
@@ -2013,7 +2606,7 @@
             if (pending.length === 0) renderEmpty(listPending, 'No teams in queue');
             else {
                 listPending.replaceChildren();
-                pending.forEach((t) => listPending.appendChild(renderPendingRow(t)));
+                pending.forEach((t, i) => listPending.appendChild(renderPendingRow(t, i === 0)));
             }
 
             if (finished.length === 0) renderEmpty(listFinished, 'No results yet');
@@ -2026,18 +2619,22 @@
         }
 
         function renderControlQueueRow(t, isNext) {
+            const cat = CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY;
             const div = document.createElement('div');
-            div.className = `team-item pending${isNext ? ' next-up' : ''}`;
-            div.appendChild(buildTeamLabel(t));
+            div.className = `team-item pending cat-${cat}${isNext ? ' next-up' : ''}`;
+            div.title = categoryLabel(cat);
+            div.appendChild(buildTeamLabel(t, { showCategory: false, showComposition: false }));
             return div;
         }
 
         function renderControlResultRow(t, rank, isBestSort) {
+            const cat = CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY;
             const div = document.createElement('div');
-            div.className = `control-result-item${isBestSort && rank === 1 ? ' best-rank' : ''}`;
+            div.className = `control-result-item cat-${cat}${isBestSort && rank === 1 ? ' best-rank' : ''}`;
+            div.title = categoryLabel(cat);
             const top = document.createElement('div');
             top.className = 'control-result-top';
-            top.appendChild(buildTeamLabel(t));
+            top.appendChild(buildTeamLabel(t, { showCategory: false, showComposition: false }));
             const time = document.createElement('span');
             time.className = 'control-result-time';
             time.textContent = formatTime(t.totalTime);
@@ -2076,8 +2673,13 @@
 
             // Bottom bar — live race info
             liveCat.replaceChildren();
+            const controlLights = document.getElementById('control-f1-lights');
             if (raceState === 'COUNTDOWN' && countdownEnd) {
-                const remaining = Math.ceil((countdownEnd - Date.now()) / 1000);
+                const phase = getCountdownPhase();
+                controlLights?.classList.remove('hidden');
+                controlLights?.setAttribute('aria-hidden', 'false');
+                setF1Lights(controlLights, phase.lit, phase.go);
+                liveTimer.classList.add('hidden');
                 if (next) {
                     const badge = document.createElement('span');
                     setCategoryBadge(badge, next.category);
@@ -2086,9 +2688,10 @@
                 } else {
                     liveName.textContent = '—';
                 }
-                liveTimer.textContent = remaining > 0 ? String(remaining) : 'GO!';
-                liveTimer.className = 'warn';
             } else if (raceState === 'RACING' && racing) {
+                controlLights?.classList.add('hidden');
+                controlLights?.setAttribute('aria-hidden', 'true');
+                liveTimer.classList.remove('hidden');
                 const badge = document.createElement('span');
                 setCategoryBadge(badge, racing.category);
                 liveCat.appendChild(badge);
@@ -2097,6 +2700,9 @@
                 liveTimer.textContent = formatTime(elapsed);
                 liveTimer.className = '';
             } else {
+                controlLights?.classList.add('hidden');
+                controlLights?.setAttribute('aria-hidden', 'true');
+                liveTimer.classList.remove('hidden');
                 if (next) {
                     const badge = document.createElement('span');
                     setCategoryBadge(badge, next.category);
@@ -2133,33 +2739,49 @@
 
         // --- Display ---------------------------------------------------------------
 
+        /** Apply category left-border accent to a display queue row (Next Up / Then). */
+        function styleDisplayQueueRow(catEl, category) {
+            const cat = CATEGORIES[category] ? category : DEFAULT_CATEGORY;
+            const line = catEl.parentElement;
+            if (line) {
+                line.className = `team-line display-queue-row cat-${cat}`;
+                line.title = categoryLabel(cat);
+            }
+            catEl.replaceChildren();
+        }
+
         /** Show or hide the bottom “Next Up” / “Then” block. */
         function updateDisplayNextUp(team, afterTeam) {
             const block = document.getElementById('display-next-up');
             const nameEl = document.getElementById('display-next-up-name');
             const afterRow = document.getElementById('display-next-after');
             const afterNameEl = document.getElementById('display-next-after-name');
+            const nextCatEl = document.getElementById('display-next-up-cat');
+            const afterCatEl = document.getElementById('display-next-after-cat');
             if (!team) {
                 block.classList.add('hidden');
                 nameEl.textContent = '';
-                document.getElementById('display-next-up-cat').replaceChildren();
+                nextCatEl.replaceChildren();
+                if (nextCatEl.parentElement) nextCatEl.parentElement.className = 'team-line';
                 afterRow.classList.add('hidden');
                 afterNameEl.textContent = '';
-                document.getElementById('display-next-after-cat').replaceChildren();
+                afterCatEl.replaceChildren();
+                if (afterCatEl.parentElement) afterCatEl.parentElement.className = 'team-line';
                 return;
             }
             block.classList.remove('hidden');
             nameEl.textContent = team.name;
-            renderCategoryBadge(document.getElementById('display-next-up-cat'), team);
+            styleDisplayQueueRow(nextCatEl, team.category);
 
             if (afterTeam) {
                 afterRow.classList.remove('hidden');
                 afterNameEl.textContent = afterTeam.name;
-                renderCategoryBadge(document.getElementById('display-next-after-cat'), afterTeam);
+                styleDisplayQueueRow(afterCatEl, afterTeam.category);
             } else {
                 afterRow.classList.add('hidden');
                 afterNameEl.textContent = '';
-                document.getElementById('display-next-after-cat').replaceChildren();
+                afterCatEl.replaceChildren();
+                if (afterCatEl.parentElement) afterCatEl.parentElement.className = 'team-line';
             }
         }
 
@@ -2188,8 +2810,8 @@
             const timerEl = document.getElementById('main-timer');
             const overlay = document.getElementById('countdown-overlay');
             const countdownTeamName = document.getElementById('countdown-team-name');
-            const countdownNum = document.getElementById('countdown-number');
-            const countdownLabel = document.getElementById('countdown-label');
+            const countdownLights = document.getElementById('countdown-f1-lights');
+            const countdownStatus = document.getElementById('countdown-status');
             const statusPill = document.getElementById('display-status-pill');
             const racingTeam = currentRacing();
             const nextTeam = nextPending();
@@ -2197,20 +2819,20 @@
             renderDisplayLeaderboard();
 
             if (raceState === 'COUNTDOWN' && countdownEnd) {
-                const remaining = Math.ceil((countdownEnd - Date.now()) / 1000);
+                const phase = getCountdownPhase();
                 panel.classList.add('display-countdown');
                 overlay.classList.add('visible');
                 renderCategoryBadge(document.getElementById('countdown-team-cat'), nextTeam);
                 countdownTeamName.textContent = nextTeam ? nextTeam.name : '';
 
-                if (remaining > 0) {
+                if (!phase.go) {
                     overlay.classList.remove('go');
-                    countdownNum.textContent = String(remaining);
-                    countdownLabel.textContent = 'Get Ready';
+                    setF1Lights(countdownLights, phase.lit, false);
+                    countdownStatus.textContent = '';
                 } else {
                     overlay.classList.add('go');
-                    countdownNum.textContent = 'GO!';
-                    countdownLabel.textContent = 'GO!';
+                    setF1Lights(countdownLights, 5, true);
+                    countdownStatus.textContent = 'GO!';
                 }
                 return;
             }

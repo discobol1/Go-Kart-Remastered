@@ -18,6 +18,8 @@ const clients = [];
 
 /** @type {Session} */
 let session = emptySession();
+/** @type {Session|null} — state before last Start / GO / Stop (control undo) */
+let undoSnapshot = null;
 
 /**
  * @typedef {'IDLE'|'COUNTDOWN'|'RACING'} RaceState
@@ -74,6 +76,13 @@ function sanitizeSession(raw) {
   return next;
 }
 
+function isUndoableTransition(prev, next) {
+  if (prev.raceState === 'IDLE' && next.raceState === 'COUNTDOWN') return true;
+  if (prev.raceState === 'COUNTDOWN' && next.raceState === 'RACING') return true;
+  if (prev.raceState === 'RACING' && next.raceState === 'IDLE') return true;
+  return false;
+}
+
 function nextPendingTeam(teams) {
   return teams.find((t) => t?.status === 'pending') ?? null;
 }
@@ -101,13 +110,17 @@ function broadcast(payload) {
 }
 
 function sendSession(ws) {
-  ws.send(JSON.stringify({ type: 'session', session }));
+  ws.send(JSON.stringify({ type: 'session', session: sessionPayload() }));
+}
+
+function sessionPayload() {
+  return { ...session, undoSnapshot };
 }
 
 function saveSessionToDisk() {
   try {
     fs.mkdirSync(path.dirname(SESSION_FILE), { recursive: true });
-    fs.writeFileSync(SESSION_FILE, JSON.stringify(session, null, 2));
+    fs.writeFileSync(SESSION_FILE, JSON.stringify(sessionPayload(), null, 2));
   } catch (err) {
     console.warn('Could not save session:', err.message);
   }
@@ -116,16 +129,48 @@ function saveSessionToDisk() {
 function loadSessionFromDisk() {
   try {
     if (!fs.existsSync(SESSION_FILE)) return;
-    session = sanitizeSession(JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8')));
+    const raw = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
+    undoSnapshot = raw?.undoSnapshot ? sanitizeSession(raw.undoSnapshot) : null;
+    const { undoSnapshot: _drop, ...rest } = raw ?? {};
+    session = sanitizeSession(rest);
   } catch (err) {
     console.warn('Could not load session:', err.message);
   }
 }
 
+function snapshotForUndo() {
+  return sanitizeSession({
+    raceState: session.raceState,
+    raceStartTime: session.raceStartTime,
+    countdownEnd: session.countdownEnd,
+    teams: JSON.parse(JSON.stringify(session.teams)),
+  });
+}
+
+function applyUndo() {
+  if (!undoSnapshot) return false;
+  let restored = sanitizeSession(undoSnapshot);
+  if (restored.raceState === 'COUNTDOWN') {
+    restored = { ...restored, raceState: 'IDLE', countdownEnd: null };
+  }
+  if (restored.raceState === 'IDLE') {
+    restored.raceStartTime = null;
+    restored.teams.forEach((t) => {
+      if (t?.status === 'racing') {
+        t.status = 'pending';
+        t.runStartTime = 0;
+      }
+    });
+  }
+  session = restored;
+  undoSnapshot = null;
+  return true;
+}
+
 function setSession(next) {
   session = sanitizeSession(next);
   saveSessionToDisk();
-  broadcast({ type: 'session', session });
+  broadcast({ type: 'session', session: sessionPayload() });
 }
 
 function tickCountdown() {
@@ -137,17 +182,18 @@ function tickCountdown() {
     session.raceState = 'IDLE';
     session.countdownEnd = null;
     saveSessionToDisk();
-    broadcast({ type: 'session', session });
+    broadcast({ type: 'session', session: sessionPayload() });
     return;
   }
 
+  undoSnapshot = snapshotForUndo();
   session.raceState = 'RACING';
   session.countdownEnd = null;
   session.raceStartTime = Date.now();
   next.status = 'racing';
   next.runStartTime = session.raceStartTime;
   saveSessionToDisk();
-  broadcast({ type: 'session', session });
+  broadcast({ type: 'session', session: sessionPayload() });
 }
 
 function lanAddresses() {
@@ -227,14 +273,24 @@ wss.on('connection', (ws) => {
     if (msg.type === 'reset') {
       if (role !== 'manager' && role !== 'home') return;
       session = emptySession();
+      undoSnapshot = null;
       saveSessionToDisk();
-      broadcast({ type: 'session', session });
+      broadcast({ type: 'session', session: sessionPayload() });
+      return;
+    }
+
+    if (msg.type === 'undo') {
+      if (role !== 'control') return;
+      if (!applyUndo()) return;
+      saveSessionToDisk();
+      broadcast({ type: 'session', session: sessionPayload() });
       return;
     }
 
     if (msg.type === 'load') {
       if (role !== 'manager' && role !== 'home') return;
       if (session.raceState === 'RACING' || session.raceState === 'COUNTDOWN') return;
+      undoSnapshot = null;
       setSession(msg.session);
       return;
     }
@@ -242,6 +298,13 @@ wss.on('connection', (ws) => {
     if (msg.type === 'update') {
       const merged = mergeForRole(msg.session, role);
       if (!merged) return;
+      if (role === 'control') {
+        if (msg.undoBefore) {
+          undoSnapshot = sanitizeSession(msg.undoBefore);
+        } else if (isUndoableTransition(session, merged)) {
+          undoSnapshot = snapshotForUndo();
+        }
+      }
       setSession(merged);
     }
   });

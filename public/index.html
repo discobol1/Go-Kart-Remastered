@@ -2,103 +2,201 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Go-Kart Pro — Setup</title>
     <style>
         :root {
-            --bg: #121212; --card: #1e1e1e; --text: #ffffff;
-            --accent: #e74c3c; --success: #2ecc71; --info: #3498db;
-            --warning: #f1c40f;
+            color-scheme: dark;
+            --blue: #0090FF;
+            --yellow: #FFCC00;
+            --green: #0090FF;
+            --red: #FF5500;
+            --info: var(--blue);
+            --warning: var(--yellow);
+            --success: var(--green);
+            --accent: var(--red);
+            --card-outline: var(--warning);
+            --neon-glow: color-mix(in srgb, var(--warning) 38%, transparent);
+            --info-tint: color-mix(in srgb, var(--info) 15%, transparent);
+            --info-tint-strong: color-mix(in srgb, var(--info) 22%, transparent);
+            --success-tint: color-mix(in srgb, var(--success) 15%, transparent);
+            --warning-tint-soft: color-mix(in srgb, var(--warning) 8%, transparent);
+            --warning-tint-border: color-mix(in srgb, var(--warning) 28%, transparent);
+            --bg: #000000; --card: #0a0804; --surface: #141008; --surface-deep: #060504;
+            --text: #FFF5E6; --text-secondary: #C8B8A0;
+            --muted: #6B6050; --muted-dim: #524A3E; --muted-light: #A89878;
+            --border: color-mix(in srgb, var(--warning) 12%, #0a0804);
+            --border-strong: color-mix(in srgb, var(--warning) 28%, #141008);
+            --page-pad: clamp(16px, 4vw, 32px);
+            --card-pad: clamp(16px, 3vw, 24px);
+            --gap: clamp(12px, 2.5vw, 20px);
         }
         * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', sans-serif;
             background: var(--bg); color: var(--text);
             margin: 0; min-height: 100vh;
-            padding: 24px;
+            padding: var(--page-pad);
+            padding-bottom: max(var(--page-pad), env(safe-area-inset-bottom));
         }
-        .wrap { max-width: 900px; margin: 0 auto; }
-        header { margin-bottom: 32px; }
-        h1 { margin: 0 0 8px; font-size: 2.2rem; }
-        .lead { color: #888; line-height: 1.6; margin: 0; max-width: 640px; }
+        .wrap {
+            max-width: 960px; margin: 0 auto;
+            width: 100%;
+        }
+        header {
+            margin-bottom: clamp(20px, 4vw, 36px);
+            text-align: center;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.6rem, 5vw, 2.2rem);
+            line-height: 1.15;
+            text-align: center;
+            text-shadow: 0 0 30px var(--neon-glow);
+        }
+        .lead {
+            color: var(--muted); line-height: 1.6; margin: 0;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            text-align: center;
+        }
         .steps {
-            display: grid; gap: 12px; margin-bottom: 32px;
-            padding: 20px; background: var(--card); border: 1px solid #333;
-            border-radius: 12px;
+            display: grid; gap: var(--gap);
+            margin-bottom: clamp(20px, 4vw, 36px);
+            padding: var(--card-pad);
+            background: var(--card); border: 1px solid var(--card-outline);
+            box-shadow: 0 0 24px var(--neon-glow);
         }
         .steps h2 {
-            margin: 0 0 8px; font-size: 0.85rem; text-transform: uppercase;
-            letter-spacing: 2px; color: #666;
+            margin: 0 0 8px; font-size: 0.8rem; text-transform: uppercase;
+            letter-spacing: 2px; color: var(--muted-dim); text-align: center;
         }
-        .steps ol { margin: 0; padding-left: 20px; color: #aaa; line-height: 1.8; }
+        .steps ol {
+            margin: 0; padding-left: 1.25rem;
+            color: var(--muted-light); line-height: 1.7;
+            font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+        }
         .device-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 16px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--gap);
+        }
+        @media (min-width: 640px) {
+            .device-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 960px) {
+            .device-grid { grid-template-columns: repeat(3, 1fr); }
         }
         .device-card {
-            background: var(--card); border: 1px solid #333; border-radius: 12px;
-            padding: 20px; display: flex; flex-direction: column; gap: 16px;
+            background: var(--card); border: 1px solid var(--card-outline);
+            padding: var(--card-pad);
+            display: flex; flex-direction: column; gap: var(--gap);
+            min-width: 0;
+            box-shadow: 0 0 24px var(--neon-glow);
         }
-        .device-head { display: flex; align-items: flex-start; gap: 14px; }
+        .device-head {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 12px; min-width: 0; text-align: center;
+        }
+        .device-head > div:last-child { min-width: 0; flex: 1; width: 100%; }
         .icon {
-            width: 48px; height: 48px; border-radius: 8px;
+            width: clamp(40px, 10vw, 48px);
+            height: clamp(40px, 10vw, 48px);
+
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; flex-shrink: 0;
+            font-size: clamp(1.2rem, 4vw, 1.5rem); flex-shrink: 0;
         }
-        .icon.display { background: rgba(102,102,102,0.3); }
-        .icon.manager { background: rgba(52,152,219,0.2); }
-        .icon.control { background: rgba(46,204,113,0.2); }
-        .device-head strong { display: block; font-size: 1.05rem; margin-bottom: 4px; }
-        .device-head span { color: #666; font-size: 0.85rem; line-height: 1.4; }
+        .icon.display { background: color-mix(in srgb, var(--warning) 14%, transparent); }
+        .icon.manager { background: var(--info-tint-strong); }
+        .icon.control { background: var(--success-tint); }
+        .device-head strong {
+            display: block;
+            font-size: clamp(0.95rem, 2.8vw, 1.05rem);
+            margin-bottom: 4px;
+        }
+        .device-head span {
+            color: var(--muted-dim);
+            font-size: clamp(0.8rem, 2.2vw, 0.85rem);
+            line-height: 1.4;
+        }
         .url-row {
-            display: flex; gap: 8px; align-items: stretch;
+            display: flex; flex-direction: column; gap: 8px;
+            min-width: 0;
+        }
+        @media (min-width: 480px) {
+            .url-row { flex-direction: row; align-items: stretch; }
         }
         .url-row code {
             flex: 1; display: block; padding: 10px 12px;
-            background: #181818; border: 1px solid #333; border-radius: 6px;
-            font-size: 0.78rem; color: #ccc; word-break: break-all;
-            line-height: 1.4;
+            background: var(--surface-deep); border: 1px solid var(--border);
+            font-size: clamp(0.72rem, 2vw, 0.8rem);
+            color: var(--text-secondary); word-break: break-all;
+            line-height: 1.4; min-width: 0;
         }
         .btn {
-            flex-shrink: 0; padding: 10px 14px; border-radius: 6px;
-            border: 1px solid #444; background: #2a2a2a; color: #ccc;
-            font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            flex-shrink: 0; padding: 12px 16px;
+            border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-secondary);
+            font-size: clamp(0.8rem, 2.2vw, 0.9rem);
+            font-weight: 600; cursor: pointer;
+            font-family: inherit;
         }
-        .btn:hover { border-color: var(--info); color: #fff; }
+        @media (min-width: 480px) {
+            .url-row .btn { align-self: stretch; }
+        }
+        .btn:hover { border-color: var(--warning); color: var(--text); }
         .btn.open {
-            background: rgba(52,152,219,0.15); border-color: var(--info);
-            color: var(--info); text-decoration: none;
-            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--warning-tint-soft); border-color: var(--warning);
+            color: var(--warning); text-decoration: none;
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; text-align: center;
+            min-height: 44px;
         }
         .btn.open.primary {
-            background: rgba(46,204,113,0.15); border-color: var(--success);
+            background: var(--success-tint); border-color: var(--success);
             color: var(--success);
         }
         .qr-wrap {
-            display: flex; justify-content: center; padding: 8px 0;
-            min-height: 148px; align-items: center;
+            display: flex; justify-content: center; padding: 4px 0;
+            min-height: 0;
         }
         .qr-wrap img {
-            width: 132px; height: 132px; border-radius: 8px;
-            background: #fff; padding: 6px;
+            width: min(132px, 60vw); height: auto; aspect-ratio: 1;
+ background: #fff; padding: 6px;
         }
-        .qr-placeholder { color: #555; font-size: 0.8rem; }
+        .qr-placeholder { color: var(--muted-dim); font-size: 0.8rem; opacity: 0.8; }
         .network-note {
-            margin-top: 28px; padding: 16px 20px;
-            background: rgba(241,196,15,0.08); border: 1px solid rgba(241,196,15,0.25);
-            border-radius: 8px; color: #aaa; font-size: 0.85rem; line-height: 1.6;
+            margin-top: clamp(20px, 4vw, 32px);
+            padding: var(--card-pad);
+            background: var(--warning-tint-soft);
+            border: 1px solid var(--warning-tint-border);
+ color: var(--muted-light);
+            font-size: clamp(0.8rem, 2.2vw, 0.9rem);
+            line-height: 1.6;
         }
         .network-note strong { color: var(--warning); }
-        .footer-links {
-            margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px;
+        .network-note code {
+            word-break: break-all;
+            font-size: 0.95em;
         }
         .toast {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: var(--card); border: 1px solid var(--success); color: var(--success);
-            padding: 10px 20px; border-radius: 8px; font-size: 0.9rem;
+            position: fixed;
+            bottom: max(16px, env(safe-area-inset-bottom));
+            left: 50%; transform: translateX(-50%);
+            max-width: calc(100vw - 32px);
+            background: var(--card); border: 1px solid var(--success);
+            color: var(--success);
+            padding: 10px 16px;
+            font-size: clamp(0.8rem, 2.2vw, 0.9rem);
             opacity: 0; pointer-events: none; transition: opacity 0.2s;
+            text-align: center; word-break: break-all;
         }
         .toast.show { opacity: 1; }
+
+        /* iPad / tablet portrait — single column reads better vertically */
+        @media (orientation: portrait) {
+            .device-grid { grid-template-columns: 1fr; }
+            .url-row { flex-direction: column; }
+            .url-row .btn { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -148,6 +246,7 @@
                     <code class="url-text">Loading…</code>
                     <button type="button" class="btn copy-btn" data-role="manager">Copy</button>
                 </div>
+                <a class="btn open" href="/manager">Open Manager (this PC)</a>
             </article>
 
             <article class="device-card" data-role="control">
@@ -163,6 +262,7 @@
                     <code class="url-text">Loading…</code>
                     <button type="button" class="btn copy-btn" data-role="control">Copy</button>
                 </div>
+                <a class="btn open primary" href="/control">Open Official (this PC)</a>
             </article>
         </div>
 
@@ -170,11 +270,6 @@
             <strong>Tip:</strong> Laptop and iPad must use the network URL above (not <code>localhost</code>).
             All devices need to be on the same Wi‑Fi as this host.
         </p>
-
-        <div class="footer-links">
-            <a class="btn open" href="/manager">Open Manager (this PC)</a>
-            <a class="btn open" href="/control">Open Official (this PC)</a>
-        </div>
     </div>
 
     <div class="toast" id="toast">Copied!</div>
@@ -252,7 +347,7 @@
                 if (!url) return;
                 try {
                     await navigator.clipboard.writeText(url);
-                    showToast('Copied ' + url);
+                    showToast('Copied!');
                 } catch {
                     prompt('Copy this URL:', url);
                 }
