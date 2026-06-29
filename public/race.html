@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Go-Kart Pro Race System</title>
+    <style>
+        :root {
+            --bg: #121212; --card: #1e1e1e; --text: #ffffff;
+            --accent: #e74c3c; --success: #2ecc71; --warning: #f1c40f; --info: #3498db;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; }
+        
+        /* --- MODE SELECTION --- */
+        #mode-selection {
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+        }
+        .mode-btn { 
+            padding: 30px 60px; font-size: 1.5rem; cursor: pointer; border: none; 
+            border-radius: 10px; font-weight: bold; width: 350px; transition: 0.3s;
+        }
+        .mode-btn:hover { transform: scale(1.05); opacity: 0.9; }
+        .mode-hint { color: #666; font-size: 0.9rem; max-width: 420px; text-align: center; line-height: 1.5; }
+
+        /* --- COMMON UI ELEMENTS --- */
+        .hidden { display: none !important; }
+
+        /* --- MANAGER MODE (2 columns + bottom add bar) --- */
+        #manager-panel {
+            width: 100%; height: 100vh; box-sizing: border-box;
+            display: flex; flex-direction: column; padding: 20px 24px;
+            overflow: hidden;
+        }
+        .manager-columns {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 16px; flex: 1; min-height: 0;
+        }
+        .manager-col {
+            background: var(--card); border: 1px solid #333; border-radius: 10px;
+            padding: 16px; display: flex; flex-direction: column; min-height: 0;
+        }
+        .col-title {
+            margin: 0 0 14px; font-size: 0.85rem; color: #888;
+            text-transform: uppercase; letter-spacing: 2px;
+            border-bottom: 1px solid #333; padding-bottom: 10px;
+        }
+        .col-subtitle {
+            font-size: 0.75rem; color: var(--success); text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 8px; font-weight: 700;
+        }
+        .col-subtitle.queue { color: #666; margin-top: 12px; }
+        .col-empty { color: #444; font-size: 0.9rem; font-style: italic; margin: 8px 0; }
+        .manager-col-list { flex: 1; overflow-y: auto; min-height: 0; }
+        .manager-bar {
+            flex-shrink: 0; display: flex; align-items: stretch;
+            padding: 16px; margin-top: 16px;
+            background: var(--card); border: 1px solid #333; border-radius: 10px;
+            --add-control-h: 46px;
+        }
+        .add-form {
+            display: flex; flex-direction: row; align-items: stretch;
+            gap: 12px; width: 100%;
+        }
+        .add-field {
+            display: flex; flex-direction: column; justify-content: flex-end;
+            gap: 6px; min-width: 0;
+        }
+        .add-field.grow { flex: 1; }
+        .add-field-category { flex-shrink: 0; width: 130px; }
+        .add-field-composition { flex-shrink: 0; width: 196px; }
+        .add-field-composition.is-jeugd { width: 108px; }
+        .add-field-composition.is-jeugd #mMembersLabel { color: var(--warning); }
+        .cat-select-sm {
+            padding: 0 12px; font-size: 0.85rem; font-weight: 700;
+            border-width: 1px; border-style: solid; cursor: pointer;
+        }
+        .cat-select-sm.gemengd {
+            background: rgba(52, 152, 219, 0.15); color: var(--info); border-color: var(--info);
+        }
+        .cat-select-sm.vrouwen {
+            background: rgba(231, 76, 60, 0.15); color: var(--accent); border-color: var(--accent);
+        }
+        .cat-select-sm.jeugd {
+            background: rgba(241, 196, 15, 0.15); color: var(--warning); border-color: var(--warning);
+        }
+        .add-field-check { flex-shrink: 0; width: 92px; }
+        .add-field-action { flex-shrink: 0; width: 130px; }
+        .member-row {
+            display: flex; gap: 4px; width: 100%; height: var(--add-control-h);
+        }
+        .member-toggle {
+            flex: 1; min-width: 0; display: inline-flex; align-items: center;
+            justify-content: center; padding: 0; border-radius: 5px;
+            border: 1px solid #444; background: #2a2a2a; cursor: pointer;
+            font-family: inherit; line-height: 0;
+        }
+        .member-toggle:hover { border-color: #666; }
+        .member-toggle.male {
+            border-color: var(--info); color: var(--info);
+            background: rgba(52, 152, 219, 0.15);
+        }
+        .member-toggle.female {
+            border-color: var(--accent); color: var(--accent);
+            background: rgba(231, 76, 60, 0.15);
+        }
+        .member-toggle.jeugd {
+            border-color: var(--warning); color: var(--warning);
+            background: rgba(241, 196, 15, 0.15);
+        }
+        .member-toggle:disabled { cursor: not-allowed; opacity: 0.85; }
+        .member-composition {
+            display: inline-flex; gap: 2px; align-items: center; flex-shrink: 0;
+        }
+        .member-dot {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 1.1rem; height: 1.1rem; border-radius: 3px; line-height: 0;
+        }
+        .member-dot.male { color: var(--info); background: rgba(52, 152, 219, 0.15); }
+        .member-dot.female { color: var(--accent); background: rgba(231, 76, 60, 0.15); }
+        .member-dot.jeugd { color: var(--warning); background: rgba(241, 196, 15, 0.15); }
+        .member-icon { width: 0.75rem; height: 0.75rem; display: block; }
+        .add-form label {
+            font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;
+            line-height: 1.2; min-height: 0.9rem;
+        }
+        .add-form label.add-label-spacer { visibility: hidden; user-select: none; }
+        .add-form input,
+        .add-form select,
+        .add-form .verkleed-toggle,
+        .add-form .btn-add-bar {
+            width: 100%; box-sizing: border-box; height: var(--add-control-h);
+            min-height: var(--add-control-h); margin: 0;
+        }
+        .add-form input,
+        .add-form select {
+            padding: 0 12px; line-height: normal;
+        }
+        .btn-add-bar {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0 20px; white-space: nowrap; border: none; border-radius: 5px;
+            font-size: 0.95rem; font-weight: 700; cursor: pointer;
+        }
+        .verkleed-toggle {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            cursor: pointer; padding: 0 14px; border-radius: 5px; border: 1px solid #444;
+            background: #2a2a2a; white-space: nowrap; font-size: 0.85rem;
+            color: #ccc; user-select: none; font-family: inherit; font-weight: inherit;
+        }
+        .verkleed-toggle:hover { border-color: #666; color: #ddd; }
+        .verkleed-toggle.active {
+            border-color: #9b59b6; background: rgba(155, 89, 182, 0.15); color: #d7b8e8;
+        }
+        .verkleed-toggle .verkleed-icon { width: 1.15rem; height: 1.15rem; display: block; }
+        .verkleed-badge {
+            flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+            padding: 4px 6px; border-radius: 4px; line-height: 0;
+            background: rgba(155, 89, 182, 0.2); color: #bb86fc; border: 1px solid #9b59b6;
+        }
+        .verkleed-icon { width: 1rem; height: 1rem; display: block; }
+        input, select { padding: 12px; border-radius: 5px; border: 1px solid #444; background: #2a2a2a; color: white; }
+        select { cursor: pointer; }
+        .team-line {
+            display: flex; align-items: center; gap: 10px; min-width: 0;
+        }
+        .team-label {
+            display: flex; flex-direction: row; align-items: center; gap: 8px;
+            min-width: 0; flex: 1;
+        }
+        .team-label .cat-badge { flex-shrink: 0; }
+        .team-label-name { font-weight: 600; word-break: break-word; min-width: 0; }
+        .cat-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 4px 6px; border-radius: 4px; width: fit-content; line-height: 0;
+        }
+        .cat-icon { width: 1rem; height: 1rem; display: block; }
+        .cat-badge.gemengd { background: rgba(52,152,219,0.2); color: var(--info); border: 1px solid var(--info); }
+        .cat-badge.vrouwen { background: rgba(231,76,60,0.2); color: var(--accent); border: 1px solid var(--accent); }
+        .cat-badge.jeugd { background: rgba(241,196,15,0.15); color: var(--warning); border: 1px solid var(--warning); }
+        #control-live-cat .cat-icon { width: 1.15rem; height: 1.15rem; }
+        #display-live-cat .cat-icon { width: 1.35rem; height: 1.35rem; }
+        #display-next-up-cat .cat-badge { padding: 8px 12px; }
+        #display-next-up-cat .cat-icon {
+            width: clamp(2.5rem, 5vw, 4rem);
+            height: clamp(2.5rem, 5vw, 4rem);
+        }
+        .display-next-row--after {
+            margin-top: clamp(0.75rem, 1.5vw, 1.25rem);
+            padding-top: clamp(0.75rem, 1.5vw, 1.25rem);
+            border-top: 1px solid #333;
+        }
+        .display-next-row--after .display-next-label {
+            font-size: clamp(0.9rem, 1.8vw, 1.35rem);
+            color: #666;
+        }
+        #display-next-after .team-line {
+            justify-content: center; gap: clamp(8px, 1.5vw, 14px); min-width: 0;
+        }
+        #display-next-after-cat .cat-badge { padding: 4px 8px; }
+        #display-next-after-cat .cat-icon {
+            width: clamp(1.5rem, 3vw, 2.5rem);
+            height: clamp(1.5rem, 3vw, 2.5rem);
+        }
+        #display-next-after-name {
+            font-size: clamp(1.5rem, 4vw, 2.75rem); font-weight: 700;
+            color: #a68b0c; text-transform: uppercase;
+            word-break: break-word; line-height: 1.1; text-align: left;
+        }
+        #countdown-team-cat .cat-badge { padding: 10px 14px; }
+        #countdown-team-cat .cat-icon { width: 2.5rem; height: 2.5rem; }
+        button { padding: 10px 15px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+        .btn-add { background: var(--info); color: white; }
+        .btn-rename { background: #555; color: white; padding: 5px 10px; font-size: 0.85rem; }
+        .btn-del { background: var(--accent); color: white; padding: 5px 10px; }
+        .team-item {
+            background: #252525; padding: 12px; border-radius: 8px;
+            margin-bottom: 10px; display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 8px;
+        }
+        .team-item.pending { align-items: center; }
+        .team-item.pending.dragging { opacity: 0.45; }
+        .team-item.pending.drop-above { box-shadow: inset 0 2px 0 var(--info); }
+        .team-item.pending.drop-below { box-shadow: inset 0 -2px 0 var(--info); }
+        .drag-handle {
+            flex-shrink: 0; cursor: grab; color: #555; padding: 4px 8px 4px 2px;
+            user-select: none; font-size: 1.1rem; line-height: 1; letter-spacing: -2px;
+        }
+        .drag-handle:active { cursor: grabbing; color: #888; }
+        .team-item.racing { border-left: 5px solid var(--success); background: #1a2e23; }
+        .team-item.finished {
+            border-left: 5px solid #555; flex-direction: column; align-items: stretch;
+        }
+        .team-item.finished.best-rank { border-left-color: var(--warning); }
+        .team-item.finished .team-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .team-result-time {
+            font-family: 'Consolas', monospace; font-size: 1.25rem;
+            font-weight: 700; color: var(--success); margin-top: 8px;
+            padding-top: 8px; border-top: 1px solid #333;
+        }
+        .team-controls { display: flex; flex-wrap: wrap; gap: 5px; flex-shrink: 0; }
+        .on-track-wrap.hidden { display: none; }
+
+        /* --- CONTROL MODE (2 columns + bottom bar) --- */
+        #control-panel {
+            width: 100%; height: 100vh; box-sizing: border-box;
+            display: flex; flex-direction: column; padding: 20px 24px;
+            overflow: hidden;
+        }
+        .control-columns {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 16px; flex: 1; min-height: 0;
+        }
+        .control-col {
+            background: var(--card); border: 1px solid #333; border-radius: 10px;
+            padding: 16px; display: flex; flex-direction: column; min-height: 0;
+        }
+        .control-col-list { flex: 1; overflow-y: auto; min-height: 0; }
+        #control-live {
+            flex: 1; display: flex; align-items: center; gap: 16px;
+            min-width: 0; padding-right: 16px;
+        }
+        .control-live-now {
+            flex-shrink: 0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: #888; white-space: nowrap;
+        }
+        .control-live-main { flex: 1; min-width: 0; }
+        .control-live-main .team-line { justify-content: flex-start; }
+        #control-live-name {
+            font-size: 1.35rem; font-weight: 800; text-transform: uppercase;
+            line-height: 1.15; word-break: break-word;
+        }
+        #control-live-timer {
+            flex-shrink: 0; font-family: 'Consolas', monospace; font-size: 2.25rem;
+            font-weight: 700; color: var(--success); font-variant-numeric: tabular-nums;
+        }
+        #control-live-timer.dim { color: #333; }
+        #control-live-timer.warn { color: var(--warning); }
+        .control-sort-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-shrink: 0; }
+        .sort-btn {
+            flex: 1; padding: 8px 10px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            background: #2a2a2a; color: #888; border: 1px solid #444; border-radius: 6px;
+            cursor: pointer;
+        }
+        .sort-btn.active { background: rgba(52,152,219,0.15); color: var(--info); border-color: var(--info); }
+        .sort-btn:hover:not(.active) { color: #ccc; border-color: #666; }
+        .team-item.next-up { outline: 2px solid var(--warning); outline-offset: -2px; }
+        .control-result-item {
+            background: #252525; padding: 10px 12px; border-radius: 8px;
+            margin-bottom: 8px; border-left: 4px solid #444;
+        }
+        .control-result-item.best-rank { border-left-color: var(--warning); }
+        .control-result-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .control-result-time {
+            font-family: 'Consolas', monospace; font-size: 1.1rem;
+            font-weight: 700; color: var(--success); flex-shrink: 0;
+        }
+        .control-bar {
+            flex-shrink: 0; display: flex; gap: 16px; align-items: stretch;
+            padding: 16px; margin-top: 16px; border: 1px solid #333; border-radius: 10px;
+            border-top-width: 2px; background: var(--card);
+            transition: background 0.25s ease, border-color 0.25s ease;
+        }
+        .control-bar.state-idle {
+            background: var(--card); border-color: #333; border-top-color: #333;
+        }
+        .control-bar.state-countdown {
+            background: rgba(241, 196, 15, 0.1); border-color: rgba(241, 196, 15, 0.35);
+            border-top-color: var(--warning);
+        }
+        .control-bar.state-racing {
+            background: rgba(46, 204, 113, 0.1); border-color: rgba(46, 204, 113, 0.35);
+            border-top-color: var(--success);
+        }
+        .control-bar-actions {
+            display: flex; gap: 12px; align-items: center; flex-shrink: 0;
+        }
+        .control-bar .btn-action { margin: 0; padding: 18px 28px; font-size: 1.1rem; min-width: 140px; }
+        .control-bar .btn-undo { font-size: 0.95rem; padding: 16px 20px; min-width: 100px; }
+        .btn-start { background: var(--success); color: white; }
+        .btn-stop { background: var(--accent); color: white; }
+        .btn-undo { background: #2d3436; color: var(--warning); border: 2px solid var(--warning); }
+        .btn-undo:disabled { opacity: 0.35; cursor: not-allowed; }
+        .mode-data-actions {
+            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+            margin-top: 40px; max-width: 720px;
+        }
+        .btn-data {
+            background: #2a2a2a; color: #ccc; font-size: 0.85rem;
+            border: 1px solid #444; padding: 12px 24px;
+        }
+        .btn-data:hover { border-color: var(--info); color: #fff; background: rgba(52,152,219,0.1); }
+        .btn-reset {
+            background: none; color: #ff7675; font-size: 0.85rem;
+            border: 1px solid #444; padding: 12px 24px;
+        }
+        .btn-reset:hover { border-color: #ff7675; background: rgba(255,118,117,0.08); }
+        #backup-file-input { display: none; }
+
+        /* --- DISPLAY MODE (flexible, matches manager / control) --- */
+        #display-panel {
+            width: 100%; height: 100vh; box-sizing: border-box;
+            display: flex; flex-direction: column; gap: 16px;
+            padding: 20px 24px; overflow: hidden; position: relative;
+        }
+        .display-columns {
+            display: grid; grid-template-columns: 2fr 1fr;
+            gap: 16px; flex: 1; min-height: 0;
+        }
+        .display-col {
+            background: var(--card); border: 1px solid #333; border-radius: 10px;
+            padding: 16px; display: flex; flex-direction: column; min-height: 0;
+        }
+        .display-col-list { flex: 1; overflow-y: auto; min-height: 0; }
+        #display-live {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: stretch; text-align: center;
+            padding: 12px; min-height: 0;
+        }
+        .display-live-center {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; min-height: 0;
+        }
+        #display-status-pill {
+            font-size: 1rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 4px; padding: 8px 24px; border-radius: 50px;
+            border: 2px solid #333; color: #666; margin-bottom: 20px;
+        }
+        #display-status-pill.racing { color: var(--success); border-color: var(--success); }
+        #display-status-pill.idle { color: #666; }
+        #display-live .team-line {
+            justify-content: center; margin-bottom: 16px; max-width: 100%;
+        }
+        #display-live-name {
+            font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800;
+            text-transform: uppercase; line-height: 1.15;
+            word-break: break-word;
+        }
+        #main-timer {
+            font-family: 'Consolas', monospace;
+            font-size: clamp(3rem, 12vw, 6.5rem);
+            font-weight: 700; font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+        #main-timer.live { color: var(--success); }
+        #main-timer.dim { color: #333; }
+        .display-next-block {
+            flex-shrink: 0; background: var(--card); border: 1px solid #333;
+            border-radius: 10px; padding: clamp(1rem, 2vw, 1.75rem) 20px;
+        }
+        #display-next-up.hidden { display: none; }
+        .display-next-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: clamp(16px, 3vw, 36px); flex-wrap: wrap;
+        }
+        .display-next-label {
+            flex-shrink: 0; font-size: clamp(1.25rem, 2.5vw, 2rem); color: #888;
+            text-transform: uppercase; letter-spacing: 0.2em;
+            font-weight: 700; white-space: nowrap;
+        }
+        #display-next-up .team-line {
+            justify-content: center; gap: clamp(12px, 2vw, 20px); min-width: 0;
+        }
+        #display-next-up-name {
+            font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 800;
+            color: var(--warning); text-transform: uppercase;
+            word-break: break-word; line-height: 1.1; text-align: left;
+        }
+
+        #display-panel.display-countdown .display-columns,
+        #display-panel.display-countdown .display-next-block { visibility: hidden; }
+
+        #countdown-overlay {
+            position: fixed; inset: 0;
+            background: var(--bg);
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column; z-index: 200;
+        }
+        #countdown-overlay.visible { display: flex; }
+        #countdown-overlay .team-line {
+            justify-content: center; margin-bottom: clamp(1rem, 4vw, 2.5rem); max-width: 90vw;
+        }
+        #countdown-team-name {
+            font-size: clamp(2rem, 6vw, 4.5rem); font-weight: 800;
+            text-transform: uppercase; letter-spacing: 2px;
+            text-align: center; line-height: 1.1; word-break: break-word;
+        }
+        #countdown-number {
+            font-size: clamp(6rem, 28vw, 16rem); font-weight: 900; line-height: 0.9;
+            color: var(--warning);
+        }
+        #countdown-label {
+            font-size: clamp(1rem, 3vw, 2rem); letter-spacing: 0.5em;
+            text-transform: uppercase; color: #666; margin-top: 1rem;
+        }
+        #countdown-overlay.go #countdown-number { color: var(--success); }
+        #countdown-overlay.go #countdown-label { color: var(--success); }
+
+        #sound-prompt {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: var(--card); border: 1px solid #444;
+            padding: 12px 24px; border-radius: 8px; font-size: 0.9rem;
+            color: #aaa; cursor: pointer; z-index: 210;
+        }
+        #sound-prompt:hover { border-color: var(--warning); color: #fff; }
+
+        #connection-status {
+            position: fixed; top: 8px; right: 8px; z-index: 3000;
+            font-size: 0.75rem; padding: 6px 12px; border-radius: 6px;
+            background: var(--card); border: 1px solid #444; color: #888;
+        }
+        #connection-status.connected { border-color: var(--success); color: var(--success); }
+        #connection-status.disconnected { border-color: var(--accent); color: var(--accent); }
+        #connection-status.hidden-status { display: none; }
+
+        #display-fullscreen-btn {
+            position: fixed; top: 12px; left: 12px; z-index: 210;
+            background: rgba(30,30,30,0.85); border: 1px solid #444;
+            color: #aaa; padding: 10px 14px; border-radius: 8px;
+            font-size: 0.8rem; cursor: pointer;
+        }
+        #display-fullscreen-btn:hover { color: #fff; border-color: #666; }
+
+        @media (pointer: coarse) {
+            .control-bar .btn-action { min-width: 120px; padding: 22px 24px; font-size: 1.15rem; }
+            .control-bar .btn-undo { min-width: 110px; padding: 20px 18px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="connection-status" class="disconnected">Connecting…</div>
+
+    <div id="mode-selection">
+        <h1 style="font-size: 3rem;">Go-Kart Pro</h1>
+        <p class="mode-hint">Open each role on a separate device over your local network. The host shows the public display, a laptop manages teams, and an iPad runs timing.</p>
+        <button class="mode-btn" style="background: var(--info); color: white;" onclick="setMode('manager')">Manager (Lineup)</button>
+        <button class="mode-btn" style="background: var(--success); color: white;" onclick="setMode('control')">Official (Timing)</button>
+        <button class="mode-btn" style="background: #666; color: white;" onclick="setMode('display')">Display (Public)</button>
+        <div class="mode-data-actions">
+            <button class="btn-data" onclick="backupRaceData()">Backup Race Data</button>
+            <button class="btn-data" onclick="document.getElementById('backup-file-input').click()">Load Race Data</button>
+            <input type="file" id="backup-file-input" accept=".json,application/json" onchange="loadRaceDataFromFile(this)">
+            <button class="btn-reset" onclick="managerReset()">Reset All Data</button>
+        </div>
+    </div>
+
+    <div id="manager-panel" class="hidden">
+        <div class="manager-columns">
+            <section class="manager-col manager-col-pending">
+                <h3 class="col-title">Pending</h3>
+                <div id="on-track-wrap" class="on-track-wrap hidden">
+                    <div class="col-subtitle">On Track</div>
+                    <div id="list-racing"></div>
+                </div>
+                <div class="col-subtitle queue">Queue</div>
+                <div id="list-pending" class="manager-col-list"></div>
+            </section>
+            <section class="manager-col manager-col-finished">
+                <h3 class="col-title">Finished — Results</h3>
+                <div class="control-sort-bar">
+                    <button type="button" id="manager-sort-recent" class="sort-btn active" onclick="setManagerResultsSort('recent')">Last Races</button>
+                    <button type="button" id="manager-sort-best" class="sort-btn" onclick="setManagerResultsSort('best')">Best Times</button>
+                </div>
+                <div id="list-finished" class="manager-col-list"></div>
+            </section>
+        </div>
+        <footer class="manager-bar">
+            <div class="add-form">
+                <div class="add-field grow">
+                    <label for="mName">Team Name</label>
+                    <input type="text" id="mName" placeholder="e.g. Team Red" onkeydown="if(event.key==='Enter')managerAdd()">
+                </div>
+                <div class="add-field add-field-check">
+                    <label for="mVerkleed">Verkleed</label>
+                    <button type="button" id="mVerkleed" class="verkleed-toggle"
+                        aria-pressed="false" title="Verkleed — 10 second time bonus"
+                        aria-label="Verkleed — 10 second time bonus"
+                        onclick="toggleVerkleedAdd()">
+                        <span id="mVerkleed-icon" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="add-field add-field-category">
+                    <label for="mCategory">Category</label>
+                    <select id="mCategory" title="Category" onchange="onAddCategoryChange()"></select>
+                </div>
+                <div id="mCompositionField" class="add-field add-field-composition">
+                    <label id="mMembersLabel">Team (4)</label>
+                    <div id="mMembers" class="member-row" role="group" aria-label="Team composition"></div>
+                </div>
+                <div class="add-field add-field-action">
+                    <label class="add-label-spacer" aria-hidden="true">Add</label>
+                    <button type="button" class="btn-add btn-add-bar" onclick="managerAdd()">Add Team</button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="control-panel" class="hidden">
+        <div class="control-columns">
+            <section class="control-col">
+                <h3 class="col-title">Past Races</h3>
+                <div class="control-sort-bar">
+                    <button type="button" id="sort-recent" class="sort-btn active" onclick="setControlResultsSort('recent')">Last Races</button>
+                    <button type="button" id="sort-best" class="sort-btn" onclick="setControlResultsSort('best')">Best Times</button>
+                </div>
+                <div id="control-list-finished" class="control-col-list"></div>
+            </section>
+            <section class="control-col">
+                <h3 class="col-title">Pending</h3>
+                <div id="control-list-pending" class="control-col-list"></div>
+            </section>
+        </div>
+        <footer class="control-bar state-idle">
+            <div id="control-live">
+                <div class="control-live-now">NOW:</div>
+                <div class="control-live-main">
+                    <div class="team-line">
+                        <div id="control-live-cat"></div>
+                        <div id="control-live-name">—</div>
+                    </div>
+                </div>
+                <div id="control-live-timer" class="dim">00:00.000</div>
+            </div>
+            <div class="control-bar-actions">
+                <button id="startBtn" class="btn-start btn-action" onclick="controlStart()">START</button>
+                <button id="stopBtn" class="btn-stop btn-action hidden" onclick="controlStop()">FINISH</button>
+                <button id="undoBtn" class="btn-undo btn-action" onclick="controlUndo()" disabled>↩ UNDO</button>
+            </div>
+        </footer>
+    </div>
+
+    <div id="display-panel" class="hidden">
+        <div class="display-columns">
+            <section class="display-col">
+                <h3 class="col-title">Current Run</h3>
+                <div id="display-live">
+                    <div class="display-live-center">
+                        <div id="display-status-pill" class="idle">Ready</div>
+                        <div class="team-line">
+                            <div id="display-live-cat"></div>
+                            <div id="display-live-name">—</div>
+                        </div>
+                        <div id="main-timer" class="dim">00:00.000</div>
+                    </div>
+                </div>
+            </section>
+            <section class="display-col">
+                <h3 class="col-title">Leaderboard</h3>
+                <div id="display-leaderboard-list" class="display-col-list"></div>
+            </section>
+        </div>
+        <section id="display-next-up" class="display-next-block hidden">
+            <div class="display-next-row">
+                <div class="display-next-label">Next Up</div>
+                <div class="team-line">
+                    <div id="display-next-up-cat"></div>
+                    <div id="display-next-up-name"></div>
+                </div>
+            </div>
+            <div id="display-next-after" class="display-next-row display-next-row--after hidden">
+                <div class="display-next-label">Then</div>
+                <div class="team-line">
+                    <div id="display-next-after-cat"></div>
+                    <div id="display-next-after-name"></div>
+                </div>
+            </div>
+        </section>
+        <div id="countdown-overlay">
+            <div class="team-line">
+                <div id="countdown-team-cat"></div>
+                <div id="countdown-team-name"></div>
+            </div>
+            <div id="countdown-number">5</div>
+            <div id="countdown-label">Get Ready</div>
+        </div>
+        <div id="sound-prompt">🔊 Click to enable sound</div>
+        <button type="button" id="display-fullscreen-btn" class="hidden" onclick="toggleDisplayFullscreen()">⛶ Fullscreen</button>
+    </div>
+
+    <script>
+        /* =============================================================================
+         * GO-KART PRO — race.html (single-file app)
+         * =============================================================================
+         *
+         * QUICK START
+         *   npm install && npm start
+         *   Host display:  http://<host-ip>:8765/display
+         *   Race manager:  http://<host-ip>:8765/manager   (laptop)
+         *   Race official: http://<host-ip>:8765/control    (iPad)
+         *   Setup page:    http://<host-ip>:8765/
+         *
+         * PURPOSE
+         *   Time-trial timing for go-kart teams (one run per team, no laps).
+         *   All devices share one session via WebSocket to the local server.
+         *
+         * MODES — setMode('manager' | 'control' | 'display')
+         *   manager  — queue + results (no timing authority)
+         *   control  — ONLY tab that starts/finishes races; owns countdown timer
+         *   display  — public screen (rAF loop); countdown overlay + sound prompt
+         *
+         * UI LAYOUT
+         *   MANAGER — Pending (drag-drop) | Finished (Last Races / Best Times).
+         *     Add bar: Team Name | Verkleed (icon toggle) | Category dropdown |
+         *              member toggles (2 or 4) | Add Team.
+         *   CONTROL — Pending | Past Races (sortable).
+         *     Bottom bar: “NOW:” + team + timer | START / FINISH | UNDO.
+         *     Bar background: gray (idle) | yellow (countdown) | green (racing).
+         *   DISPLAY — Current Run + Leaderboard; Next Up (+ Then) pinned at bottom.
+         *
+         * SYNC
+         *   WebSocket to same host — server is source of truth
+         *   sync() — send update to server, cache in localStorage
+         *   applySession() — load from server push or backup
+         *
+         * RACE STATE (control tab only)
+         *   IDLE → COUNTDOWN (5s) → RACING → IDLE
+         *   armCountdownTimer() must run in control tab after countdown starts.
+         *   Keyboard (control, not in inputs): Space = start/finish, Z = undo.
+         *
+         * CATEGORIES & COMPOSITION (add form)
+         *   gemengd — 4 members, default all male; toggles enabled
+         *   vrouwen — 4 members, all female; toggles enabled
+         *   jeugd   — 2 members, toggles locked (yellow child icons)
+         *   Dropdown drives member count; toggling members updates dropdown
+         *     (all f → vrouwen, else → gemengd). Jeugd is manual via dropdown.
+         *   Legacy category "mannen" migrates to gemengd on load.
+         *
+         * SCORING — officialFinishTime(team, elapsedSec)
+         *   −5s per woman (WOMAN_BONUS_SEC), adult teams only (not jeugd)
+         *   −10s if verkleed (VERKLEED_BONUS_SEC); stored as team.totalTime
+         *
+         * TEAM — @typedef {Team} below
+         *   id, name, category, members[], verkleed, totalTime, status,
+         *   runStartTime, finishedAt?
+         *
+         * BACKUP JSON
+         *   { version, app, exportedAt, session: { raceState, raceStartTime,
+         *     countdownEnd, teams } } — legacy "drivers" field still loads.
+         *
+         * KEY FUNCTIONS (grep)
+         *   Session:   sync, applySession, normalizeTeam, normalizeMembers
+         *   Manager:   managerAdd, onAddCategoryChange, rebuildMemberAddRow,
+         *              reorderPending, setupManagerPendingDragDrop
+         *   Control:   controlStart, controlStop, controlUndo, armCountdownTimer
+         *   Scoring:   officialFinishTime, womenCount, categoryFromMembers
+         *   Render:    renderUI → renderManager | renderControl | renderDisplay
+         *   UI/icons:  buildTeamLabel, setCategoryBadge, appendMemberComposition,
+         *              appendVerkleedBadge, categoryIconSvg
+         *
+         * POSSIBLE NEXT STEPS
+         *   - Edit composition / Verkleed on existing pending teams
+         *   - Filter leaderboard by category
+         *   - Fullscreen display mode
+         *   - Export results CSV / print view
+         * ============================================================================= */
+
+        const STORAGE_KEY = 'kart_session_data';
+        const BACKUP_VERSION = 1;
+        const COUNTDOWN_SEC = 5;
+        const ADULT_TEAM_SIZE = 4;
+        const JEUGD_TEAM_SIZE = 2;
+        const WOMAN_BONUS_SEC = 5;
+        const VERKLEED_BONUS_SEC = 10;
+        const CATEGORIES = {
+            gemengd: { label: 'Gemengd' },
+            vrouwen: { label: 'Vrouwen' },
+            jeugd: { label: 'Jeugd' },
+        };
+        const DEFAULT_CATEGORY = 'gemengd';
+        /** @type {WebSocket|null} */
+        let ws = null;
+        /** @type {'display'|'manager'|'control'|'home'|''} */
+        let wsRole = '';
+        let wsConnected = false;
+        let wsReconnectTimer = null;
+        let mode = '';
+        let displayLoopId = null;
+        let controlLoopId = null;
+        let countdownTimerId = null;
+        /** @type {'recent'|'best'} */
+        let controlResultsSort = 'recent';
+        /** @type {'recent'|'best'} */
+        let managerResultsSort = 'recent';
+        let undoSnapshot = null;
+        let soundEnabled = false;
+        let audioCtx = null;
+        /** Dedupes countdown beeps across tabs/frames */
+        let lastSoundKey = '';
+
+        /** @type {'IDLE'|'COUNTDOWN'|'RACING'} */
+        let raceState = 'IDLE';
+        /** @type {number|null} ms when current run started */
+        let raceStartTime = null;
+        /** @type {number|null} ms when countdown ends (synced to Display) */
+        let countdownEnd = null;
+        /** @type {Team[]} */
+        let teams = [];
+
+        /**
+         * @typedef {'gemengd'|'vrouwen'|'jeugd'} CategoryKey
+         * @typedef {'m'|'f'} MemberGender
+         * @typedef {'pending'|'racing'|'finished'} TeamStatus
+         * @typedef {'IDLE'|'COUNTDOWN'|'RACING'} RaceState
+         * @typedef {'recent'|'best'} ResultsSort
+         */
+
+        /**
+         * @typedef {Object} Team
+         * @property {number} id
+         * @property {string} name
+         * @property {CategoryKey} category
+         * @property {MemberGender[]} members — 2 (jeugd) or 4; woman bonus adult teams only
+         * @property {boolean} verkleed — costume team; −VERKLEED_BONUS_SEC applied at finish
+         * @property {number} totalTime — official finish time in seconds (bonus included)
+         * @property {TeamStatus} status
+         * @property {number} runStartTime — ms when run began (0 if not started)
+         * @property {number} [finishedAt] — ms when stopped; used for “Last Races” sort
+         */
+
+        /**
+         * @typedef {Object} Session
+         * @property {RaceState} raceState
+         * @property {number|null} raceStartTime
+         * @property {number|null} countdownEnd
+         * @property {Team[]} teams
+         */
+
+        // --- Session sync --------------------------------------------------------
+
+        /** Coerce Date / number / string to ms timestamp, or null. */
+        function toMs(value) {
+            if (value == null) return null;
+            if (typeof value === 'number') return value;
+            if (value instanceof Date) return value.getTime();
+            const n = Number(value);
+            return Number.isFinite(n) ? n : null;
+        }
+
+        /**
+         * Normalize a raw team object (load, backup, legacy migrations).
+         * @param {Partial<Team> & Record<string, unknown>} t
+         * @returns {Team}
+         */
+        /** @param {CategoryKey} category @returns {number} */
+        function teamSize(category) {
+            return category === 'jeugd' ? JEUGD_TEAM_SIZE : ADULT_TEAM_SIZE;
+        }
+
+        /** @param {CategoryKey} [category] @returns {MemberGender[]} */
+        function defaultMembers(category = DEFAULT_CATEGORY) {
+            return Array(teamSize(category)).fill('m');
+        }
+
+        /**
+         * @param {unknown} raw
+         * @param {CategoryKey} [category]
+         * @returns {MemberGender[]}
+         */
+        function normalizeMembers(raw, category = DEFAULT_CATEGORY) {
+            const size = teamSize(category);
+            const valid = (g) => g === 'f' || g === 'm';
+            if (Array.isArray(raw) && raw.every(valid)) {
+                const mapped = raw.map((g) => (g === 'f' ? 'f' : 'm'));
+                if (mapped.length === size) return mapped;
+                if (mapped.length > size) return mapped.slice(0, size);
+                if (mapped.length < size) {
+                    return [...mapped, ...Array(size - mapped.length).fill('m')];
+                }
+            }
+            return defaultMembers(category);
+        }
+
+        /** @param {Team} team @returns {number} */
+        function womenCount(team) {
+            return (team.members ?? []).filter((m) => m === 'f').length;
+        }
+
+        /**
+         * Race category from 4-member composition.
+         * @param {MemberGender[]|unknown} members
+         * @returns {CategoryKey}
+         */
+        function categoryFromMembers(members) {
+            const list = normalizeMembers(members, 'gemengd');
+            return list.every((m) => m === 'f') ? 'vrouwen' : 'gemengd';
+        }
+
+        /** Normalize team on load/backup; infers jeugd from 2-member arrays. */
+        function normalizeTeam(t) {
+            if (t.runStartTime == null && t.lapStartTime != null) t.runStartTime = t.lapStartTime;
+            if (t.category === 'mannen') t.category = 'gemengd';
+            const rawMembers = t.members;
+            const isJeugd = t.category === 'jeugd'
+                || (Array.isArray(rawMembers) && rawMembers.length === JEUGD_TEAM_SIZE);
+            if (isJeugd) {
+                t.category = 'jeugd';
+                t.members = normalizeMembers(rawMembers, 'jeugd');
+            } else {
+                t.members = normalizeMembers(rawMembers, 'gemengd');
+                t.category = categoryFromMembers(t.members);
+            }
+            t.verkleed = !!t.verkleed;
+            if (t.finishedAt != null) t.finishedAt = toMs(t.finishedAt);
+            return t;
+        }
+
+        /**
+         * Apply woman + Verkleed bonuses to raw elapsed seconds; stored as totalTime.
+         * Woman bonus does not apply to Jeugd teams.
+         * @param {Team} team
+         * @param {number} elapsedSec
+         * @returns {number}
+         */
+        function officialFinishTime(team, elapsedSec) {
+            let time = Math.max(0, elapsedSec);
+            if (team.category !== 'jeugd') {
+                time = Math.max(0, time - womenCount(team) * WOMAN_BONUS_SEC);
+            }
+            if (team.verkleed) time = Math.max(0, time - VERKLEED_BONUS_SEC);
+            return time;
+        }
+
+        /**
+         * Sort finished teams for results lists.
+         * @param {Team[]} finished
+         * @param {ResultsSort} sort
+         * @returns {Team[]}
+         */
+        function sortFinishedTeams(finished, sort) {
+            if (sort === 'best') {
+                return [...finished].sort((a, b) => a.totalTime - b.totalTime);
+            }
+            return [...finished].sort((a, b) => (b.finishedAt ?? b.id) - (a.finishedAt ?? a.id));
+        }
+
+        // --- Categories, composition & Verkleed (icons / badges) -----------------
+
+        /** @param {MemberGender} gender @returns {string} */
+        function memberIconSvg(gender) {
+            if (gender === 'f') {
+                return '<svg class="member-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 14v8M8 18h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+            }
+            return '<svg class="member-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 10h6v6M20 4 14 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+
+        /** @returns {string} Jeugd child icon sized for member slots. */
+        function jeugdMemberIconSvg() {
+            return categoryIconSvg('jeugd').replace('cat-icon', 'member-icon');
+        }
+
+        /**
+         * @param {HTMLElement} btn
+         * @param {MemberGender} gender
+         * @param {number} slotNum
+         * @param {boolean} [isJeugd]
+         */
+        function setMemberToggleState(btn, gender, slotNum, isJeugd = false) {
+            btn.classList.remove('male', 'female', 'jeugd');
+            if (isJeugd) {
+                btn.classList.add('jeugd');
+                btn.innerHTML = jeugdMemberIconSvg();
+                btn.title = `Jeugd member ${slotNum}`;
+                btn.setAttribute('aria-label', btn.title);
+                return;
+            }
+            btn.classList.toggle('male', gender === 'm');
+            btn.classList.toggle('female', gender === 'f');
+            btn.innerHTML = memberIconSvg(gender);
+            const label = gender === 'f' ? 'female' : 'male';
+            const other = gender === 'f' ? 'male' : 'female';
+            btn.title = `Member ${slotNum} — ${label} (click for ${other})`;
+            btn.setAttribute('aria-label', btn.title);
+        }
+
+        /** Append compact 4-member gender icons. @param {HTMLElement} parent @param {Team} team */
+        function appendMemberComposition(parent, team) {
+            const members = team.members ?? defaultMembers();
+            const women = womenCount(team);
+            const wrap = document.createElement('span');
+            const isJeugd = team.category === 'jeugd';
+            wrap.className = `member-composition${isJeugd ? ' is-jeugd' : ''}`;
+            const total = members.length;
+            if (isJeugd) {
+                wrap.title = `${women} woman${women === 1 ? '' : 'en'}, ${total - women} man${total - women === 1 ? '' : 'en'} (jeugd — no woman bonus)`;
+            } else {
+                wrap.title = women
+                    ? `${women} woman${women === 1 ? '' : 'en'} (−${women * WOMAN_BONUS_SEC}s)`
+                    : `${total} men (no woman bonus)`;
+            }
+            wrap.setAttribute('aria-label', wrap.title);
+            members.forEach((g) => {
+                const dot = document.createElement('span');
+                if (isJeugd) {
+                    dot.className = 'member-dot jeugd';
+                    dot.innerHTML = jeugdMemberIconSvg();
+                } else {
+                    dot.className = `member-dot ${g === 'f' ? 'female' : 'male'}`;
+                    dot.innerHTML = memberIconSvg(g);
+                }
+                wrap.appendChild(dot);
+            });
+            parent.appendChild(wrap);
+        }
+
+        /** @returns {string} Inline SVG for party-hat Verkleed badge. */
+        function verkleedIconSvg() {
+            return '<svg class="verkleed-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 4 20 21 4 21Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 15l3-7 3 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="3.5" r="2" fill="currentColor"/></svg>';
+        }
+
+        /** Append party-hat badge if team.verkleed. @param {HTMLElement} parent @param {Team|null|undefined} team */
+        function appendVerkleedBadge(parent, team) {
+            if (!team?.verkleed) return;
+            const badge = document.createElement('span');
+            badge.className = 'verkleed-badge';
+            badge.innerHTML = verkleedIconSvg();
+            badge.title = `Verkleed (−${VERKLEED_BONUS_SEC}s)`;
+            badge.setAttribute('aria-label', `Verkleed (−${VERKLEED_BONUS_SEC}s)`);
+            parent.appendChild(badge);
+        }
+
+        /** @param {CategoryKey|string} key @returns {string} */
+        function categoryLabel(key) {
+            return CATEGORIES[key]?.label ?? CATEGORIES[DEFAULT_CATEGORY].label;
+        }
+
+        /** @param {CategoryKey|string} category @returns {string} Inline SVG. */
+        function categoryIconSvg(category) {
+            const key = CATEGORIES[category] ? category : DEFAULT_CATEGORY;
+            const icons = {
+                gemengd: '<svg class="cat-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 7l4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 3h3v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14.5v5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9.5 18h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+                vrouwen: '<svg class="cat-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 14v8M8 18h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+                jeugd: '<svg class="cat-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 21c1.2-4 3.5-6 7-6s5.8 2 7 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+            };
+            return icons[key];
+        }
+
+        /** Populate a <select> with all categories and apply colored styling. */
+        function fillCategorySelect(select, selected) {
+            if (!select) return;
+            select.replaceChildren();
+            Object.entries(CATEGORIES).forEach(([key, { label }]) => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = label;
+                select.appendChild(opt);
+            });
+            setAddCategory(selected);
+        }
+
+        /** @param {HTMLSelectElement|null} select @param {CategoryKey|string} category */
+        function styleCategorySelect(select, category) {
+            if (!select) return;
+            const key = CATEGORIES[category] ? category : DEFAULT_CATEGORY;
+            select.className = `cat-select-sm ${key}`;
+        }
+
+        /** @param {CategoryKey} category */
+        function setAddCategory(category) {
+            const select = document.getElementById('mCategory');
+            if (!select) return;
+            const key = CATEGORIES[category] ? category : DEFAULT_CATEGORY;
+            select.value = key;
+            styleCategorySelect(select, key);
+        }
+
+        /** @returns {CategoryKey} */
+        function getAddCategory() {
+            const v = document.getElementById('mCategory')?.value;
+            return CATEGORIES[v] ? v : DEFAULT_CATEGORY;
+        }
+
+        /**
+         * Preset genders when user picks a category from the dropdown.
+         * @param {CategoryKey} category
+         * @returns {MemberGender[]}
+         */
+        function defaultMembersForCategory(category) {
+            if (category === 'jeugd') return ['m', 'm'];
+            if (category === 'vrouwen') return ['f', 'f', 'f', 'f'];
+            return ['m', 'm', 'm', 'm'];
+        }
+
+        function setCategoryBadge(el, category) {
+            const key = CATEGORIES[category] ? category : DEFAULT_CATEGORY;
+            el.innerHTML = categoryIconSvg(key);
+            el.className = `cat-badge ${key}`;
+            el.title = categoryLabel(key);
+            el.setAttribute('aria-label', categoryLabel(key));
+        }
+
+        /** Render category badge into a container (clears existing children). */
+        function renderCategoryBadge(parent, team) {
+            parent.replaceChildren();
+            if (!team) return;
+            const badge = document.createElement('span');
+            setCategoryBadge(badge, team.category);
+            parent.appendChild(badge);
+        }
+
+        function renderEmpty(container, message) {
+            container.replaceChildren();
+            const el = document.createElement('p');
+            el.className = 'col-empty';
+            el.textContent = message;
+            container.appendChild(el);
+        }
+
+        /** @returns {Session} */
+        function getSession() {
+            return { raceState, raceStartTime, countdownEnd, teams };
+        }
+
+        /** Load session from storage, channel, or backup. @param {Session|null|undefined} data */
+        function applySession(data) {
+            if (!data) return;
+            raceState = data.raceState ?? 'IDLE';
+            raceStartTime = toMs(data.raceStartTime);
+            countdownEnd = toMs(data.countdownEnd);
+            const raw = data.teams ?? data.drivers;
+            teams = Array.isArray(raw) ? raw.map(normalizeTeam) : [];
+            renderUI();
+            // Control tab must own the countdown interval (re-open / sync case)
+            if (mode === 'control' && raceState === 'COUNTDOWN' && countdownEnd) {
+                armCountdownTimer();
+            }
+        }
+
+        function updateConnectionStatus() {
+            const el = document.getElementById('connection-status');
+            if (!el) return;
+            el.classList.toggle('connected', wsConnected);
+            el.classList.toggle('disconnected', !wsConnected);
+            el.textContent = wsConnected ? 'Connected' : 'Reconnecting…';
+            const hideWhenOk = mode === 'display' || mode === 'control';
+            el.classList.toggle('hidden-status', hideWhenOk && wsConnected);
+        }
+
+        function toggleDisplayFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.().catch(() => {});
+            }
+        }
+
+        function wsUrl() {
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            return `${protocol}//${location.host}`;
+        }
+
+        function scheduleReconnect() {
+            if (wsReconnectTimer != null) return;
+            wsReconnectTimer = setTimeout(() => {
+                wsReconnectTimer = null;
+                if (wsRole) connectWebSocket(wsRole);
+            }, 2000);
+        }
+
+        /** @param {'display'|'manager'|'control'|'home'} role */
+        function connectWebSocket(role) {
+            wsRole = role;
+            if (ws) {
+                ws.onclose = null;
+                ws.close();
+            }
+            try {
+                ws = new WebSocket(wsUrl());
+            } catch {
+                wsConnected = false;
+                updateConnectionStatus();
+                scheduleReconnect();
+                return;
+            }
+
+            ws.onopen = () => {
+                wsConnected = true;
+                updateConnectionStatus();
+                ws.send(JSON.stringify({ type: 'hello', role }));
+            };
+
+            ws.onmessage = (event) => {
+                let msg;
+                try { msg = JSON.parse(event.data); } catch { return; }
+                if (msg.type === 'session') {
+                    applySession(msg.session);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(msg.session));
+                }
+            };
+
+            ws.onclose = () => {
+                wsConnected = false;
+                updateConnectionStatus();
+                scheduleReconnect();
+            };
+
+            ws.onerror = () => {
+                wsConnected = false;
+                updateConnectionStatus();
+            };
+        }
+
+        /** Persist session and push to server. */
+        function sync() {
+            const data = getSession();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'update', session: data }));
+            }
+            renderUI();
+        }
+
+        /** Hydrate from localStorage cache while waiting for server. */
+        function loadFromStorage() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return;
+            try {
+                applySession(JSON.parse(saved));
+            } catch {
+                console.warn('Go-Kart Pro: corrupt session data in localStorage');
+            }
+        }
+
+        function readStoredSession() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try { return JSON.parse(saved); } catch { /* use in-memory state */ }
+            }
+            return getSession();
+        }
+
+        // --- Backup / load (mode selection screen) -------------------------------
+
+        function backupFilename() {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+            return `gokart-backup-${stamp}.json`;
+        }
+
+        function backupRaceData() {
+            const session = readStoredSession();
+            const payload = {
+                version: BACKUP_VERSION,
+                app: 'Go-Kart Pro',
+                exportedAt: new Date().toISOString(),
+                session,
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = backupFilename();
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function validateBackupSession(raw) {
+            const session = raw.session ?? raw;
+            const teamList = session.teams ?? session.drivers;
+            if (!Array.isArray(teamList)) throw new Error('Backup file is missing a teams list.');
+
+            const validStates = ['IDLE', 'COUNTDOWN', 'RACING'];
+            if (!validStates.includes(session.raceState)) throw new Error('Backup has an invalid race state.');
+
+            teamList.forEach((t, i) => {
+                if (!t || typeof t.name !== 'string' || !t.name.trim()) {
+                    throw new Error(`Team ${i + 1} is missing a name.`);
+                }
+                if (!['pending', 'racing', 'finished'].includes(t.status)) {
+                    throw new Error(`Team "${t.name}" has an invalid status.`);
+                }
+            });
+
+            return {
+                raceState: session.raceState,
+                raceStartTime: toMs(session.raceStartTime),
+                countdownEnd: toMs(session.countdownEnd),
+                teams: teamList.map((t, i) => normalizeTeam({
+                    id: t.id ?? Date.now() + i,
+                    name: t.name.trim(),
+                    category: CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY,
+                    members: t.members,
+                    verkleed: !!t.verkleed,
+                    totalTime: Number(t.totalTime) || 0,
+                    status: t.status,
+                    runStartTime: toMs(t.runStartTime) ?? 0,
+                    finishedAt: toMs(t.finishedAt),
+                })),
+            };
+        }
+
+        function sanitizeLoadedSession(session) {
+            // Don't restore an expired countdown — would confuse timing
+            if (session.raceState === 'COUNTDOWN') {
+                if (!session.countdownEnd || session.countdownEnd <= Date.now()) {
+                    session.raceState = 'IDLE';
+                    session.countdownEnd = null;
+                }
+            }
+            if (session.raceState !== 'RACING') {
+                session.raceStartTime = null;
+                session.teams.forEach((t) => {
+                    if (t.status === 'racing') {
+                        t.status = 'pending';
+                        t.runStartTime = 0;
+                    }
+                });
+            }
+            if (session.raceState === 'IDLE') {
+                session.raceStartTime = null;
+                session.countdownEnd = null;
+            }
+            return session;
+        }
+
+        function loadRaceDataFromFile(input) {
+            const file = input.files?.[0];
+            input.value = '';
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const raw = JSON.parse(reader.result);
+                    let session = validateBackupSession(raw);
+                    session = sanitizeLoadedSession(session);
+
+                    const teamCount = session.teams.length;
+                    const finishedCount = session.teams.filter((t) => t.status === 'finished').length;
+                    const summary = `${teamCount} team(s), ${finishedCount} finished time(s).`;
+                    const hasExisting = teams.length > 0 || localStorage.getItem(STORAGE_KEY);
+                    const ok = hasExisting
+                        ? confirm(`Replace current race data?\n\n${summary}`)
+                        : confirm(`Load race data?\n\n${summary}`);
+                    if (!ok) return;
+
+                    clearCountdownTimer();
+                    clearUndo();
+                    lastSoundKey = '';
+                    applySession(session);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: 'load', session }));
+                    }
+                    renderUI();
+                    alert(`Race data loaded.\n\n${summary}`);
+                } catch (err) {
+                    alert(`Could not load backup:\n${err.message || err}`);
+                }
+            };
+            reader.onerror = () => alert('Could not read the selected file.');
+            reader.readAsText(file);
+        }
+
+        // --- Boot ----------------------------------------------------------------
+
+        function bootFromUrl() {
+            const params = new URLSearchParams(location.search);
+            const urlMode = params.get('mode');
+            const valid = ['manager', 'control', 'display'];
+            if (urlMode && valid.includes(urlMode)) {
+                connectWebSocket(urlMode);
+                setMode(urlMode);
+                return;
+            }
+            connectWebSocket('home');
+            loadFromStorage();
+        }
+
+        bootFromUrl();
+
+        // --- Undo (recover accidental Start / GO / Stop) -------------------------
+
+        function pushUndo() {
+            undoSnapshot = {
+                raceState,
+                raceStartTime,
+                countdownEnd,
+                teams: JSON.parse(JSON.stringify(teams)),
+            };
+            updateUndoButton();
+        }
+
+        function clearUndo() {
+            undoSnapshot = null;
+            updateUndoButton();
+        }
+
+        function updateUndoButton() {
+            const btn = document.getElementById('undoBtn');
+            if (btn) {
+                btn.disabled = !undoSnapshot;
+                btn.title = undoSnapshot
+                    ? 'Restore state before last Start, GO, or Stop'
+                    : 'Nothing to undo';
+            }
+        }
+
+        function controlUndo() {
+            if (!undoSnapshot) return;
+            clearCountdownTimer();
+            raceState = undoSnapshot.raceState;
+            raceStartTime = undoSnapshot.raceStartTime;
+            countdownEnd = undoSnapshot.countdownEnd;
+            teams = undoSnapshot.teams ?? undoSnapshot.drivers ?? [];
+
+            // Never re-enter countdown on undo — IDLE is the safe recovery state
+            if (raceState === 'COUNTDOWN') {
+                raceState = 'IDLE';
+                countdownEnd = null;
+            }
+            // Ensure no stray racing team when undoing an accidental GO
+            if (raceState === 'IDLE') {
+                teams.forEach((t) => {
+                    if (t.status === 'racing') {
+                        t.status = 'pending';
+                        t.runStartTime = 0;
+                    }
+                });
+                raceStartTime = null;
+            }
+
+            clearUndo();
+            lastSoundKey = '';
+            if (soundEnabled) playCancel();
+            sync();
+        }
+
+        // --- Sound (Web Audio — no external files) -------------------------------
+
+        function ensureAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') return audioCtx.resume();
+            return Promise.resolve();
+        }
+
+        function enableSound() {
+            soundEnabled = true;
+            const prompt = document.getElementById('sound-prompt');
+            if (prompt) prompt.classList.add('hidden');
+            ensureAudio();
+        }
+
+        function playTone(freq, duration, volume = 0.25, type = 'sine') {
+            if (!soundEnabled || !audioCtx) return;
+            const t0 = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t0);
+            gain.gain.setValueAtTime(volume, t0);
+            gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t0);
+            osc.stop(t0 + duration);
+        }
+
+        function playCountdownTick(n) {
+            // Rising pitch as countdown approaches zero
+            const base = 280 + (COUNTDOWN_SEC - n) * 80;
+            playTone(base, 0.12, 0.3, 'square');
+        }
+
+        function playGo() {
+            playTone(523, 0.18, 0.35, 'sine');
+            setTimeout(() => playTone(784, 0.18, 0.35, 'sine'), 80);
+            setTimeout(() => playTone(1047, 0.35, 0.4, 'sine'), 160);
+        }
+
+        function playCancel() {
+            playTone(180, 0.2, 0.2, 'triangle');
+        }
+
+        function playStopRecorded() {
+            playTone(330, 0.15, 0.25, 'sine');
+            setTimeout(() => playTone(220, 0.25, 0.2, 'sine'), 100);
+        }
+
+        /** Play countdown ticks on any tab that has sound enabled */
+        function handleCountdownSounds() {
+            if (!soundEnabled || raceState !== 'COUNTDOWN' || !countdownEnd) return;
+            const remaining = Math.ceil((countdownEnd - Date.now()) / 1000);
+            if (remaining > 0) {
+                const key = `tick-${countdownEnd}-${remaining}`;
+                if (lastSoundKey !== key) {
+                    lastSoundKey = key;
+                    playCountdownTick(remaining);
+                }
+            } else {
+                const key = `go-${countdownEnd}`;
+                if (lastSoundKey !== key) {
+                    lastSoundKey = key;
+                    playGo();
+                }
+            }
+        }
+
+        // --- Mode selection & refresh loops ----------------------------------------
+
+        /** @param {'manager'|'control'|'display'} selectedMode */
+        function setMode(selectedMode) {
+            mode = selectedMode;
+            if (wsRole !== selectedMode) connectWebSocket(selectedMode);
+            document.getElementById('mode-selection').classList.add('hidden');
+            ['manager-panel', 'control-panel', 'display-panel'].forEach((id) => {
+                document.getElementById(id).classList.add('hidden');
+            });
+
+            if (mode === 'manager') {
+                document.getElementById('manager-panel').classList.remove('hidden');
+                initManagerPanel();
+            } else if (mode === 'control') {
+                document.getElementById('control-panel').classList.remove('hidden');
+                updateUndoButton();
+                startControlLoop();
+                if (raceState === 'COUNTDOWN' && countdownEnd) armCountdownTimer();
+            } else {
+                document.getElementById('display-panel').classList.remove('hidden');
+                document.getElementById('display-fullscreen-btn')?.classList.remove('hidden');
+                startDisplayLoop();
+                const prompt = document.getElementById('sound-prompt');
+                if (prompt) {
+                    prompt.classList.toggle('hidden', soundEnabled);
+                    prompt.onclick = () => {
+                        enableSound();
+                        toggleDisplayFullscreen();
+                    };
+                }
+            }
+
+            loadFromStorage();
+            renderUI();
+        }
+
+        function startDisplayLoop() {
+            if (displayLoopId != null) return;
+            function tick() {
+                if (mode === 'display') {
+                    renderDisplay();
+                    handleCountdownSounds();
+                    displayLoopId = requestAnimationFrame(tick);
+                } else {
+                    displayLoopId = null;
+                }
+            }
+            displayLoopId = requestAnimationFrame(tick);
+        }
+
+        function startControlLoop() {
+            if (controlLoopId != null) return;
+            function tick() {
+                if (mode === 'control') {
+                    if (raceState === 'RACING' || raceState === 'COUNTDOWN') renderControl();
+                    controlLoopId = requestAnimationFrame(tick);
+                } else {
+                    controlLoopId = null;
+                }
+            }
+            controlLoopId = requestAnimationFrame(tick);
+        }
+
+        /** @param {ResultsSort} sort */
+        function setControlResultsSort(sort) {
+            controlResultsSort = sort;
+            document.getElementById('sort-recent')?.classList.toggle('active', sort === 'recent');
+            document.getElementById('sort-best')?.classList.toggle('active', sort === 'best');
+            renderControl();
+        }
+
+        /** @param {ResultsSort} sort */
+        function setManagerResultsSort(sort) {
+            managerResultsSort = sort;
+            document.getElementById('manager-sort-recent')?.classList.toggle('active', sort === 'recent');
+            document.getElementById('manager-sort-best')?.classList.toggle('active', sort === 'best');
+            renderManager();
+        }
+
+        // --- Utilities -------------------------------------------------------------
+
+        /** @param {number} totalSec @returns {string} MM:SS.mmm */
+        function formatTime(totalSec) {
+            const clamped = Math.max(0, totalSec);
+            const mins = Math.floor(clamped / 60);
+            const secs = clamped % 60;
+            const whole = Math.floor(secs);
+            const ms = Math.floor((secs - whole) * 1000);
+            return `${String(mins).padStart(2, '0')}:${String(whole).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+        }
+
+        /** First pending team in queue order. @returns {Team|undefined} */
+        function nextPending() {
+            return teams.find((t) => t.status === 'pending');
+        }
+
+        /** Second pending team in queue order. @returns {Team|undefined} */
+        function secondPending() {
+            return teams.filter((t) => t.status === 'pending')[1];
+        }
+
+        /** @returns {Team|undefined} */
+        function currentRacing() {
+            return teams.find((t) => t.status === 'racing');
+        }
+
+        // --- Manager --------------------------------------------------------------
+
+        /** Sync “Team (n)” label and jeugd styling on the composition field. */
+        function updateMembersAddLabel() {
+            const lbl = document.getElementById('mMembersLabel');
+            const field = document.getElementById('mCompositionField');
+            const row = document.getElementById('mMembers');
+            const category = getAddCategory();
+            const n = teamSize(category);
+            if (lbl) lbl.textContent = `Team (${n})`;
+            const isJeugd = category === 'jeugd';
+            field?.classList.toggle('is-jeugd', isJeugd);
+            row?.classList.toggle('is-jeugd', isJeugd);
+            if (row) {
+                row.setAttribute('aria-label', isJeugd
+                    ? `Team composition — ${n} members (jeugd, locked)`
+                    : `Team composition — ${n} members`);
+            }
+        }
+
+        /**
+         * @param {MemberGender[]|undefined} genders — preset genders when category changes
+         */
+        function rebuildMemberAddRow(genders) {
+            const row = document.getElementById('mMembers');
+            if (!row) return;
+            const category = getAddCategory();
+            const size = teamSize(category);
+            const locked = category === 'jeugd';
+            let list;
+            if (genders) {
+                list = normalizeMembers(genders, category);
+            } else {
+                const prev = getMembersFromAddRow();
+                list = prev.length === size
+                    ? normalizeMembers(prev, category)
+                    : defaultMembersForCategory(category);
+            }
+            row.replaceChildren();
+            for (let i = 0; i < size; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'member-toggle';
+                btn.disabled = locked;
+                setMemberToggleState(btn, list[i], i + 1, locked);
+                if (!locked) {
+                    btn.onclick = () => {
+                        const female = btn.classList.contains('female');
+                        setMemberToggleState(btn, female ? 'm' : 'f', i + 1, false);
+                        syncAddCategoryFromMembers();
+                    };
+                }
+                row.appendChild(btn);
+            }
+            updateMembersAddLabel();
+        }
+
+        /** Category dropdown changed — reset members per category rules. */
+        function onAddCategoryChange() {
+            const cat = getAddCategory();
+            styleCategorySelect(document.getElementById('mCategory'), cat);
+            rebuildMemberAddRow(defaultMembersForCategory(cat));
+        }
+
+        /** After manual toggle: all female → Vrouwen, otherwise → Gemengd. */
+        function syncAddCategoryFromMembers() {
+            if (getAddCategory() === 'jeugd') return;
+            setAddCategory(categoryFromMembers(getMembersFromAddRow()));
+        }
+
+        /** @returns {MemberGender[]} */
+        function getMembersFromAddRow() {
+            return [...document.querySelectorAll('#mMembers .member-toggle')].map((btn) =>
+                (btn.classList.contains('female') ? 'f' : 'm'),
+            );
+        }
+
+        /** Reset add bar after a team is added. */
+        function resetAddForm() {
+            resetVerkleedAdd();
+            setAddCategory(DEFAULT_CATEGORY);
+            rebuildMemberAddRow(defaultMembersForCategory(DEFAULT_CATEGORY));
+        }
+
+        /** One-time + per-open setup for manager mode UI. */
+        function initManagerPanel() {
+            const verkleedIcon = document.getElementById('mVerkleed-icon');
+            if (verkleedIcon) verkleedIcon.innerHTML = verkleedIconSvg();
+            fillCategorySelect(document.getElementById('mCategory'), DEFAULT_CATEGORY);
+            rebuildMemberAddRow(defaultMembersForCategory(DEFAULT_CATEGORY));
+            setupManagerPendingDragDrop();
+        }
+
+        /** @returns {boolean} */
+        function isVerkleedAddOn() {
+            return document.getElementById('mVerkleed')?.classList.contains('active') ?? false;
+        }
+
+        function toggleVerkleedAdd() {
+            const btn = document.getElementById('mVerkleed');
+            if (!btn) return;
+            const on = btn.classList.toggle('active');
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+
+        function resetVerkleedAdd() {
+            const btn = document.getElementById('mVerkleed');
+            if (!btn) return;
+            btn.classList.remove('active');
+            btn.setAttribute('aria-pressed', 'false');
+        }
+
+        /** Add team from the bottom bar form. */
+        function managerAdd() {
+            const nameEl = document.getElementById('mName');
+            const name = nameEl.value.trim();
+            if (!name) return;
+            const category = getAddCategory();
+            const members = getMembersFromAddRow();
+            teams.push({
+                id: Date.now(),
+                name,
+                category,
+                members,
+                verkleed: isVerkleedAddOn(),
+                totalTime: 0,
+                status: 'pending',
+                runStartTime: 0,
+            });
+            nameEl.value = '';
+            resetAddForm();
+            nameEl.focus();
+            sync();
+        }
+
+        /**
+         * Reorder pending queue via drag-and-drop (preserves non-pending slot positions).
+         * @param {number} draggedId
+         * @param {number} targetId
+         * @param {boolean} insertBefore
+         */
+        function reorderPending(draggedId, targetId, insertBefore) {
+            const pending = teams.filter((t) => t.status === 'pending');
+            const ids = pending.map((t) => t.id);
+            const fromIdx = ids.indexOf(draggedId);
+            let toIdx = ids.indexOf(targetId);
+            if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return;
+
+            ids.splice(fromIdx, 1);
+            if (fromIdx < toIdx) toIdx--;
+            if (!insertBefore) toIdx++;
+            ids.splice(toIdx, 0, draggedId);
+
+            const byId = new Map(pending.map((t) => [t.id, t]));
+            const ordered = ids.map((id) => byId.get(id));
+            let i = 0;
+            teams = teams.map((t) => (t.status === 'pending' ? ordered[i++] : t));
+            sync();
+        }
+
+        let pendingDragId = null;
+
+        function clearPendingDropIndicators() {
+            document.querySelectorAll('#list-pending .drop-above, #list-pending .drop-below')
+                .forEach((el) => el.classList.remove('drop-above', 'drop-below'));
+        }
+
+        /** Bind drag-and-drop on #list-pending (once). */
+        function setupManagerPendingDragDrop() {
+            const list = document.getElementById('list-pending');
+            if (list.dataset.dragBound) return;
+            list.dataset.dragBound = '1';
+
+            list.addEventListener('dragstart', (e) => {
+                const handle = e.target.closest('.drag-handle');
+                if (!handle) return;
+                const row = handle.closest('.team-item.pending');
+                if (!row) return;
+                pendingDragId = Number(row.dataset.teamId);
+                row.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', row.dataset.teamId);
+            });
+
+            list.addEventListener('dragend', () => {
+                list.querySelectorAll('.team-item.pending.dragging')
+                    .forEach((el) => el.classList.remove('dragging'));
+                clearPendingDropIndicators();
+                pendingDragId = null;
+            });
+
+            list.addEventListener('dragover', (e) => {
+                if (pendingDragId == null) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const row = e.target.closest('.team-item.pending');
+                clearPendingDropIndicators();
+                if (!row || Number(row.dataset.teamId) === pendingDragId) return;
+                const rect = row.getBoundingClientRect();
+                row.classList.toggle('drop-above', e.clientY < rect.top + rect.height / 2);
+                row.classList.toggle('drop-below', e.clientY >= rect.top + rect.height / 2);
+            });
+
+            list.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const row = e.target.closest('.team-item.pending');
+                if (!row || pendingDragId == null) return;
+                const targetId = Number(row.dataset.teamId);
+                if (targetId === pendingDragId) return;
+                const rect = row.getBoundingClientRect();
+                const insertBefore = e.clientY < rect.top + rect.height / 2;
+                reorderPending(pendingDragId, targetId, insertBefore);
+                clearPendingDropIndicators();
+            });
+        }
+
+        function managerRename(id) {
+            const target = teams.find((t) => t.id === id);
+            if (!target) return;
+            const name = prompt('New team name:', target.name);
+            if (name == null) return;
+            const trimmed = name.trim();
+            if (!trimmed) return alert('Team name cannot be empty.');
+            target.name = trimmed;
+            sync();
+        }
+
+        function managerDel(id) {
+            const target = teams.find((t) => t.id === id);
+            if (!target) return;
+            if (target.status === 'racing') {
+                alert('Cannot remove a team that is currently on track. Stop or undo first.');
+                return;
+            }
+            teams = teams.filter((t) => t.id !== id);
+            sync();
+        }
+
+        function managerReset() {
+            if (confirm('Delete everything? This clears all teams and times.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'reset' }));
+                }
+                applySession(emptySession());
+            }
+        }
+
+        /** @returns {Session} */
+        function emptySession() {
+            return { raceState: 'IDLE', raceStartTime: null, countdownEnd: null, teams: [] };
+        }
+
+        // --- Control -------------------------------------------------------------
+
+        function clearCountdownTimer() {
+            if (countdownTimerId != null) {
+                clearInterval(countdownTimerId);
+                countdownTimerId = null;
+            }
+        }
+
+        /** Control-tab interval: fires beginRacingRun when countdownEnd is reached. */
+        function armCountdownTimer() {
+            clearCountdownTimer();
+            const next = nextPending();
+            if (!next || raceState !== 'COUNTDOWN' || !countdownEnd) return;
+
+            countdownTimerId = setInterval(() => {
+                if (Date.now() >= countdownEnd) {
+                    clearCountdownTimer();
+                    pushUndo();
+                    beginRacingRun(next);
+                } else {
+                    renderControl();
+                    handleCountdownSounds();
+                }
+            }, 50);
+        }
+
+        /** @param {Team} team */
+        function beginRacingRun(team) {
+            raceState = 'RACING';
+            countdownEnd = null;
+            raceStartTime = Date.now();
+            team.status = 'racing';
+            team.runStartTime = raceStartTime;
+            sync();
+        }
+
+        /** Start countdown for the next pending team (control tab only). */
+        function controlStart() {
+            if (raceState !== 'IDLE') return;
+            const next = nextPending();
+            if (!next) return alert('No pending teams left!');
+
+            pushUndo();
+            clearCountdownTimer();
+            raceState = 'COUNTDOWN';
+            countdownEnd = Date.now() + COUNTDOWN_SEC * 1000;
+            lastSoundKey = '';
+            sync();
+            armCountdownTimer();
+        }
+
+        /** Finish current run or cancel countdown (control tab only). */
+        function controlStop() {
+            // Cancel countdown — recovery for accidental Start (Undo also works)
+            if (raceState === 'COUNTDOWN') {
+                clearCountdownTimer();
+                raceState = 'IDLE';
+                countdownEnd = null;
+                lastSoundKey = '';
+                if (soundEnabled) playCancel();
+                sync();
+                return;
+            }
+            const current = currentRacing();
+            if (!current && raceState !== 'RACING') return;
+
+            pushUndo();
+            if (current) {
+                const elapsed = (Date.now() - current.runStartTime) / 1000;
+                current.totalTime = officialFinishTime(current, elapsed);
+                current.status = 'finished';
+                current.finishedAt = Date.now();
+            }
+            raceState = 'IDLE';
+            raceStartTime = null;
+            countdownEnd = null;
+            clearCountdownTimer();
+            if (soundEnabled) playStopRecorded();
+            sync();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (mode !== 'control' || e.target.matches('input, textarea')) return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (raceState === 'IDLE') controlStart();
+                else controlStop();
+            }
+            if (e.code === 'KeyZ' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                controlUndo();
+            }
+        });
+
+        // --- Rendering -------------------------------------------------------------
+
+        /** Re-render the active mode panel from current in-memory state. */
+        function renderUI() {
+            if (mode === 'manager') renderManager();
+            if (mode === 'control') renderControl();
+            if (mode === 'display') renderDisplay();
+        }
+
+        /**
+         * Team name row with optional category icon and Verkleed badge.
+         * @param {Team} t
+         * @param {{ showCategory?: boolean, showComposition?: boolean }} [options]
+         */
+        function buildTeamLabel(t, { showCategory = true, showComposition = true } = {}) {
+            const label = document.createElement('div');
+            label.className = 'team-label';
+            if (showCategory) {
+                const badge = document.createElement('span');
+                setCategoryBadge(badge, t.category);
+                label.appendChild(badge);
+            }
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'team-label-name';
+            nameSpan.textContent = t.name;
+            label.appendChild(nameSpan);
+            if (showComposition) appendMemberComposition(label, t);
+            appendVerkleedBadge(label, t);
+            return label;
+        }
+
+        function buildPendingControls(t) {
+            const controls = document.createElement('div');
+            controls.className = 'team-controls';
+
+            const rename = document.createElement('button');
+            rename.className = 'btn-rename';
+            rename.textContent = 'Rename';
+            rename.onclick = () => managerRename(t.id);
+            controls.appendChild(rename);
+
+            const del = document.createElement('button');
+            del.className = 'btn-del';
+            del.textContent = '✕';
+            del.onclick = () => managerDel(t.id);
+            controls.appendChild(del);
+
+            return controls;
+        }
+
+        function renderPendingRow(t) {
+            const div = document.createElement('div');
+            div.className = 'team-item pending';
+            div.dataset.teamId = String(t.id);
+
+            const handle = document.createElement('span');
+            handle.className = 'drag-handle';
+            handle.draggable = true;
+            handle.title = 'Drag to reorder';
+            handle.setAttribute('aria-label', 'Drag to reorder');
+            handle.textContent = '⠿';
+
+            div.append(handle, buildTeamLabel(t, { showCategory: false }), buildPendingControls(t));
+            return div;
+        }
+
+        function renderRacingRow(t) {
+            const div = document.createElement('div');
+            div.className = 'team-item racing';
+            div.appendChild(buildTeamLabel(t));
+            return div;
+        }
+
+        function renderFinishedRow(t, rank, isBestSort) {
+            const div = document.createElement('div');
+            div.className = `team-item finished${isBestSort && rank === 1 ? ' best-rank' : ''}`;
+
+            const top = document.createElement('div');
+            top.className = 'team-item-top';
+            top.appendChild(buildTeamLabel(t));
+
+            const del = document.createElement('button');
+            del.className = 'btn-del';
+            del.textContent = '✕';
+            del.title = 'Remove from results';
+            del.onclick = () => managerDel(t.id);
+            top.appendChild(del);
+            div.appendChild(top);
+
+            const time = document.createElement('div');
+            time.className = 'team-result-time';
+            time.textContent = formatTime(t.totalTime);
+            div.appendChild(time);
+
+            return div;
+        }
+
+        /** Manager panel: pending queue, on-track, finished results, add bar. */
+        function renderManager() {
+            const listPending = document.getElementById('list-pending');
+            const listRacing = document.getElementById('list-racing');
+            const listFinished = document.getElementById('list-finished');
+            const onTrackWrap = document.getElementById('on-track-wrap');
+
+            const racing = teams.filter((t) => t.status === 'racing');
+            const pending = teams.filter((t) => t.status === 'pending');
+            const finished = sortFinishedTeams(
+                teams.filter((t) => t.status === 'finished'),
+                managerResultsSort,
+            );
+
+            listRacing.replaceChildren();
+            onTrackWrap.classList.toggle('hidden', racing.length === 0);
+            racing.forEach((t) => listRacing.appendChild(renderRacingRow(t)));
+
+            if (pending.length === 0) renderEmpty(listPending, 'No teams in queue');
+            else {
+                listPending.replaceChildren();
+                pending.forEach((t) => listPending.appendChild(renderPendingRow(t)));
+            }
+
+            if (finished.length === 0) renderEmpty(listFinished, 'No results yet');
+            else {
+                listFinished.replaceChildren();
+                finished.forEach((t, i) => {
+                    listFinished.appendChild(renderFinishedRow(t, i + 1, managerResultsSort === 'best'));
+                });
+            }
+        }
+
+        function renderControlQueueRow(t, isNext) {
+            const div = document.createElement('div');
+            div.className = `team-item pending${isNext ? ' next-up' : ''}`;
+            div.appendChild(buildTeamLabel(t));
+            return div;
+        }
+
+        function renderControlResultRow(t, rank, isBestSort) {
+            const div = document.createElement('div');
+            div.className = `control-result-item${isBestSort && rank === 1 ? ' best-rank' : ''}`;
+            const top = document.createElement('div');
+            top.className = 'control-result-top';
+            top.appendChild(buildTeamLabel(t));
+            const time = document.createElement('span');
+            time.className = 'control-result-time';
+            time.textContent = formatTime(t.totalTime);
+            top.appendChild(time);
+            div.appendChild(top);
+            return div;
+        }
+
+        /**
+         * Control panel: queues, past races, live bottom bar.
+         * Sets .control-bar state-{idle|countdown|racing} for bar tint.
+         */
+        function renderControl() {
+            const controlBar = document.querySelector('.control-bar');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const liveCat = document.getElementById('control-live-cat');
+            const liveName = document.getElementById('control-live-name');
+            const liveTimer = document.getElementById('control-live-timer');
+            const listPending = document.getElementById('control-list-pending');
+            const listFinished = document.getElementById('control-list-finished');
+
+            const racing = currentRacing();
+            const next = nextPending();
+            const pending = teams.filter((t) => t.status === 'pending');
+            const finished = sortFinishedTeams(
+                teams.filter((t) => t.status === 'finished'),
+                controlResultsSort,
+            );
+
+            if (pending.length === 0) renderEmpty(listPending, 'No teams waiting');
+            else {
+                listPending.replaceChildren();
+                pending.forEach((t, i) => listPending.appendChild(renderControlQueueRow(t, i === 0)));
+            }
+
+            // Bottom bar — live race info
+            liveCat.replaceChildren();
+            if (raceState === 'COUNTDOWN' && countdownEnd) {
+                const remaining = Math.ceil((countdownEnd - Date.now()) / 1000);
+                if (next) {
+                    const badge = document.createElement('span');
+                    setCategoryBadge(badge, next.category);
+                    liveCat.appendChild(badge);
+                    liveName.textContent = next.name;
+                } else {
+                    liveName.textContent = '—';
+                }
+                liveTimer.textContent = remaining > 0 ? String(remaining) : 'GO!';
+                liveTimer.className = 'warn';
+            } else if (raceState === 'RACING' && racing) {
+                const badge = document.createElement('span');
+                setCategoryBadge(badge, racing.category);
+                liveCat.appendChild(badge);
+                liveName.textContent = racing.name;
+                const elapsed = raceStartTime ? (Date.now() - raceStartTime) / 1000 : 0;
+                liveTimer.textContent = formatTime(elapsed);
+                liveTimer.className = '';
+            } else {
+                if (next) {
+                    const badge = document.createElement('span');
+                    setCategoryBadge(badge, next.category);
+                    liveCat.appendChild(badge);
+                    liveName.textContent = next.name;
+                } else {
+                    liveName.textContent = '—';
+                }
+                liveTimer.textContent = '00:00.000';
+                liveTimer.className = 'dim';
+            }
+
+            if (finished.length === 0) renderEmpty(listFinished, 'No races yet');
+            else {
+                listFinished.replaceChildren();
+                finished.forEach((t, i) => {
+                    listFinished.appendChild(renderControlResultRow(t, i + 1, controlResultsSort === 'best'));
+                });
+            }
+
+            // Bottom bar
+            const busy = raceState === 'RACING' || raceState === 'COUNTDOWN';
+            startBtn.classList.toggle('hidden', busy);
+            stopBtn.classList.toggle('hidden', !busy);
+            startBtn.disabled = !next && !busy;
+            updateUndoButton();
+            if (controlBar) {
+                controlBar.classList.remove('state-idle', 'state-countdown', 'state-racing');
+                const barState = raceState === 'COUNTDOWN' ? 'countdown'
+                    : raceState === 'RACING' ? 'racing' : 'idle';
+                controlBar.classList.add(`state-${barState}`);
+            }
+        }
+
+        // --- Display ---------------------------------------------------------------
+
+        /** Show or hide the bottom “Next Up” / “Then” block. */
+        function updateDisplayNextUp(team, afterTeam) {
+            const block = document.getElementById('display-next-up');
+            const nameEl = document.getElementById('display-next-up-name');
+            const afterRow = document.getElementById('display-next-after');
+            const afterNameEl = document.getElementById('display-next-after-name');
+            if (!team) {
+                block.classList.add('hidden');
+                nameEl.textContent = '';
+                document.getElementById('display-next-up-cat').replaceChildren();
+                afterRow.classList.add('hidden');
+                afterNameEl.textContent = '';
+                document.getElementById('display-next-after-cat').replaceChildren();
+                return;
+            }
+            block.classList.remove('hidden');
+            nameEl.textContent = team.name;
+            renderCategoryBadge(document.getElementById('display-next-up-cat'), team);
+
+            if (afterTeam) {
+                afterRow.classList.remove('hidden');
+                afterNameEl.textContent = afterTeam.name;
+                renderCategoryBadge(document.getElementById('display-next-after-cat'), afterTeam);
+            } else {
+                afterRow.classList.add('hidden');
+                afterNameEl.textContent = '';
+                document.getElementById('display-next-after-cat').replaceChildren();
+            }
+        }
+
+        /** Leaderboard column — finished teams sorted by best time. */
+        function renderDisplayLeaderboard() {
+            const list = document.getElementById('display-leaderboard-list');
+            const finished = sortFinishedTeams(
+                teams.filter((t) => t.status === 'finished'),
+                'best',
+            );
+
+            if (finished.length === 0) {
+                renderEmpty(list, 'No times yet');
+                return;
+            }
+            list.replaceChildren();
+            finished.forEach((t, i) => {
+                list.appendChild(renderControlResultRow(t, i + 1, true));
+            });
+        }
+
+        /** Display panel: live timer, leaderboard, countdown overlay, next up. */
+        function renderDisplay() {
+            const panel = document.getElementById('display-panel');
+            const liveNameEl = document.getElementById('display-live-name');
+            const timerEl = document.getElementById('main-timer');
+            const overlay = document.getElementById('countdown-overlay');
+            const countdownTeamName = document.getElementById('countdown-team-name');
+            const countdownNum = document.getElementById('countdown-number');
+            const countdownLabel = document.getElementById('countdown-label');
+            const statusPill = document.getElementById('display-status-pill');
+            const racingTeam = currentRacing();
+            const nextTeam = nextPending();
+
+            renderDisplayLeaderboard();
+
+            if (raceState === 'COUNTDOWN' && countdownEnd) {
+                const remaining = Math.ceil((countdownEnd - Date.now()) / 1000);
+                panel.classList.add('display-countdown');
+                overlay.classList.add('visible');
+                renderCategoryBadge(document.getElementById('countdown-team-cat'), nextTeam);
+                countdownTeamName.textContent = nextTeam ? nextTeam.name : '';
+
+                if (remaining > 0) {
+                    overlay.classList.remove('go');
+                    countdownNum.textContent = String(remaining);
+                    countdownLabel.textContent = 'Get Ready';
+                } else {
+                    overlay.classList.add('go');
+                    countdownNum.textContent = 'GO!';
+                    countdownLabel.textContent = 'GO!';
+                }
+                return;
+            }
+
+            panel.classList.remove('display-countdown');
+            overlay.classList.remove('visible', 'go');
+
+            if (raceState === 'RACING' && raceStartTime) {
+                statusPill.textContent = 'On Track';
+                statusPill.className = 'racing';
+                renderCategoryBadge(document.getElementById('display-live-cat'), racingTeam);
+                liveNameEl.textContent = racingTeam ? racingTeam.name : '—';
+                timerEl.textContent = formatTime((Date.now() - raceStartTime) / 1000);
+                timerEl.className = 'live';
+            } else {
+                statusPill.textContent = 'Ready';
+                statusPill.className = 'idle';
+                timerEl.textContent = '00:00.000';
+                timerEl.className = 'dim';
+                document.getElementById('display-live-cat').replaceChildren();
+                liveNameEl.textContent = '—';
+            }
+            updateDisplayNextUp(nextTeam, secondPending());
+        }
+    </script>
+</body>
+</html>
