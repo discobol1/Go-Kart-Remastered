@@ -177,6 +177,41 @@
             word-break: break-all;
             font-size: 0.95em;
         }
+        .settings-card {
+            margin-top: clamp(20px, 4vw, 32px);
+            padding: var(--card-pad);
+            background: var(--card); border: 1px solid var(--card-outline);
+            box-shadow: 0 0 24px var(--neon-glow);
+        }
+        .settings-card h2 {
+            margin: 0 0 8px; font-size: 0.8rem; text-transform: uppercase;
+            letter-spacing: 2px; color: var(--muted-dim);
+        }
+        .settings-card p {
+            margin: 0 0 16px; color: var(--muted-light);
+            font-size: clamp(0.85rem, 2.2vw, 0.95rem); line-height: 1.6;
+        }
+        .settings-row {
+            display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+        }
+        .settings-field { flex: 1; min-width: 140px; }
+        .settings-field label {
+            display: block; margin-bottom: 6px;
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--muted);
+        }
+        .settings-field input {
+            width: 100%; box-sizing: border-box; padding: 12px;
+            background: var(--surface-deep); border: 1px solid var(--border-strong);
+            color: var(--text); font-size: 1rem; font-family: inherit;
+        }
+        .settings-field input:focus {
+            outline: none; border-color: var(--warning);
+        }
+        .settings-status {
+            margin-top: 12px; font-size: 0.85rem; color: var(--muted-dim);
+        }
+        .settings-status.saved { color: var(--success); }
         .toast {
             position: fixed;
             bottom: max(16px, env(safe-area-inset-bottom));
@@ -270,12 +305,31 @@
             <strong>Tip:</strong> Laptop and iPad must use the network URL above (not <code>localhost</code>).
             All devices need to be on the same Wi‑Fi as this host.
         </p>
+
+        <section class="settings-card" id="race-settings">
+            <h2>Race settings</h2>
+            <p>
+                Task demerits add penalty time to a team’s official result.
+                Officials award points during a run on the iPad; each point adds the seconds below.
+            </p>
+            <div class="settings-row">
+                <div class="settings-field">
+                    <label for="demerit-seconds">Seconds per demerit point</label>
+                    <input type="number" id="demerit-seconds" min="0" max="3600" step="1" value="5">
+                </div>
+                <button type="button" class="btn" id="demerit-save-btn">Save</button>
+            </div>
+            <p class="settings-status" id="settings-status">Connecting to server…</p>
+        </section>
     </div>
 
     <div class="toast" id="toast">Copied!</div>
 
     <script>
         const urls = {};
+        let settingsWs = null;
+        let settingsReady = false;
+        let settingsReconnectTimer = null;
 
         function showToast(msg) {
             const el = document.getElementById('toast');
@@ -301,6 +355,87 @@
                 img.alt = 'QR code for ' + role;
                 wrap.appendChild(img);
             }
+        }
+
+        function setSettingsStatus(text, saved = false) {
+            const el = document.getElementById('settings-status');
+            if (!el) return;
+            el.textContent = text;
+            el.classList.toggle('saved', saved);
+        }
+
+        function wsUrl() {
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            return `${protocol}//${location.host}`;
+        }
+
+        function scheduleSettingsReconnect() {
+            if (settingsReconnectTimer != null) return;
+            settingsReconnectTimer = setTimeout(() => {
+                settingsReconnectTimer = null;
+                connectSettingsWs();
+            }, 2000);
+        }
+
+        function connectSettingsWs() {
+            if (settingsWs) {
+                settingsWs.onclose = null;
+                settingsWs.close();
+            }
+            try {
+                settingsWs = new WebSocket(wsUrl());
+            } catch {
+                setSettingsStatus('Server offline — start npm run start:host');
+                scheduleSettingsReconnect();
+                return;
+            }
+
+            settingsWs.onopen = () => {
+                settingsReady = false;
+                setSettingsStatus('Connecting…');
+                settingsWs.send(JSON.stringify({ type: 'hello', role: 'home' }));
+            };
+
+            settingsWs.onmessage = (event) => {
+                let msg;
+                try { msg = JSON.parse(event.data); } catch { return; }
+                if (msg.type !== 'session') return;
+                settingsReady = true;
+                const sec = msg.session?.demeritSecondsPerPoint;
+                const input = document.getElementById('demerit-seconds');
+                if (input && sec != null) input.value = String(sec);
+                setSettingsStatus('Synced with server');
+            };
+
+            settingsWs.onclose = () => {
+                settingsReady = false;
+                setSettingsStatus('Reconnecting…');
+                scheduleSettingsReconnect();
+            };
+
+            settingsWs.onerror = () => {
+                settingsReady = false;
+                setSettingsStatus('Connection error');
+            };
+        }
+
+        function saveDemeritSettings() {
+            const input = document.getElementById('demerit-seconds');
+            if (!input || !settingsWs || settingsWs.readyState !== WebSocket.OPEN || !settingsReady) {
+                showToast('Not connected to server');
+                return;
+            }
+            const value = Number(input.value);
+            if (!Number.isFinite(value) || value < 0) {
+                showToast('Enter a valid number of seconds');
+                return;
+            }
+            settingsWs.send(JSON.stringify({
+                type: 'updateSettings',
+                demeritSecondsPerPoint: value,
+            }));
+            setSettingsStatus('Saved', true);
+            showToast('Demerit setting saved');
         }
 
         async function init() {
@@ -354,7 +489,13 @@
             });
         });
 
+        document.getElementById('demerit-save-btn')?.addEventListener('click', saveDemeritSettings);
+        document.getElementById('demerit-seconds')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') saveDemeritSettings();
+        });
+
         init();
+        connectSettingsWs();
     </script>
 </body>
 </html>

@@ -193,19 +193,39 @@ async function runTests() {
   assert('Server transitions to RACING after countdown', session.raceState === 'RACING');
   assert('Team is racing', session.teams.find((t) => t.id === 9001)?.status === 'racing');
 
-  // Finish run
-  const racingTeam = session.teams.find((t) => t.id === 9001);
-  racingTeam.status = 'finished';
-  racingTeam.totalTime = 42.5;
-  racingTeam.finishedAt = Date.now();
+  // Demerit settings via home
+  const homeWs = await openWs('home');
+  homeWs.ws.send(JSON.stringify({ type: 'updateSettings', demeritSecondsPerPoint: 10 }));
+  session = await waitForSession(homeWs.ws, (s) => s.demeritSecondsPerPoint === 10);
+  assert('Home updates demerit seconds per point', session.demeritSecondsPerPoint === 10);
+
+  // Add demerit points during race
+  session.teams[0].demeritPoints = 2;
+  sendUpdate(control.ws, {
+    raceState: session.raceState,
+    raceStartTime: session.raceStartTime,
+    countdownEnd: session.countdownEnd,
+    demeritSecondsPerPoint: 10,
+    teams: session.teams,
+  });
+  session = await waitForSession(control.ws, (s) => s.teams[0]?.demeritPoints === 2);
+  assert('Control can add demerit points', session.teams[0]?.demeritPoints === 2);
+
+  // Finish run with demerit penalty (42.5 raw + 20s penalty = 62.5)
+  session.teams[0].status = 'finished';
+  session.teams[0].runElapsedSec = 42.5;
+  session.teams[0].totalTime = 62.5;
+  session.teams[0].finishedAt = Date.now();
   sendUpdate(control.ws, {
     raceState: 'IDLE',
     raceStartTime: null,
     countdownEnd: null,
+    demeritSecondsPerPoint: 10,
     teams: session.teams,
   });
   session = await waitForSession(control.ws, (s) => s.raceState === 'IDLE' && s.teams[0]?.status === 'finished');
-  assert('Control finishes run', session.teams[0]?.status === 'finished');
+  assert('Control finishes run with demerits', session.teams[0]?.totalTime === 62.5);
+  homeWs.ws.close();
 
   // Undo finish
   control.ws.send(JSON.stringify({ type: 'undo' }));
@@ -221,7 +241,8 @@ async function runTests() {
 
   // Reset cleanup
   mgr.ws.send(JSON.stringify({ type: 'reset' }));
-  await waitForSession(mgr.ws, (s) => s.teams.length === 0);
+  session = await waitForSession(mgr.ws, (s) => s.teams.length === 0);
+  assert('Reset preserves demerit setting', session.demeritSecondsPerPoint === 10);
 
   mgr.ws.close();
   control.ws.close();
@@ -231,6 +252,7 @@ async function runTests() {
   assert('Session file exists on disk', fs.existsSync(SESSION_FILE));
   const disk = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
   assert('Disk session is IDLE after reset', disk.raceState === 'IDLE');
+  assert('Disk session stores demerit setting', disk.demeritSecondsPerPoint === 10);
 
   log('integration complete', { passed, failed, failures });
   console.log(`\n${passed} passed, ${failed} failed\n`);

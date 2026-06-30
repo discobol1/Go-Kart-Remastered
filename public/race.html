@@ -256,6 +256,17 @@
         .btn-add { background: var(--warning); color: #000000; }
         .btn-rename { background: var(--warning); color: #000000; padding: 5px 10px; font-size: 0.85rem; }
         .btn-del { background: var(--accent); color: white; padding: 5px 10px; }
+        .btn-edit-points {
+            background: var(--surface); color: var(--warning);
+            border: 1px solid var(--warning); padding: 5px 10px;
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; cursor: pointer; font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn-edit-points:hover:not(:disabled) {
+            background: var(--warning-tint-soft); color: var(--text);
+        }
+        .btn-edit-points:disabled { opacity: 0.45; cursor: default; }
         .team-item {
             background: var(--surface); padding: 12px;
             margin-bottom: 10px; display: flex; justify-content: space-between;
@@ -346,6 +357,14 @@
             font-family: 'Consolas', monospace; font-size: 1.1rem;
             font-weight: 700; color: var(--success); flex-shrink: 0;
         }
+        .control-result-times {
+            display: flex; align-items: center; gap: 8px;
+            flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;
+        }
+        .control-result-time--raw {
+            font-size: 0.95rem; font-weight: 600; color: var(--muted-light);
+        }
+        .control-result-time--final { color: var(--success); }
         .control-bar {
             flex-shrink: 0; display: flex; gap: 16px; align-items: stretch;
             padding: 16px; margin-top: 16px; border: 1px solid var(--card-outline);
@@ -374,7 +393,80 @@
             flex: 1; min-width: 0;
         }
         .control-bar .btn-undo { font-size: 0.95rem; padding: 16px 20px; }
-        .btn-start { background: var(--success); color: white; }
+        .control-demerit {
+            flex-shrink: 0; margin-top: 12px;
+            padding: 14px 16px; border: 1px solid var(--card-outline);
+            background: var(--card); box-shadow: 0 0 24px var(--neon-glow);
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+        }
+        .control-demerit.hidden { display: none; }
+        .control-demerit--review {
+            border-color: var(--warning);
+            background: var(--warning-tint-soft);
+        }
+        .control-demerit-head {
+            flex: 1 1 100%; display: flex; align-items: baseline;
+            justify-content: space-between; gap: 12px; min-width: 0;
+        }
+        .control-demerit-title {
+            margin: 0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--muted);
+        }
+        .control-demerit-team {
+            font-size: 0.9rem; font-weight: 800; text-transform: uppercase;
+            color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .control-demerit-hint {
+            flex: 1 1 100%; margin: -8px 0 0;
+            font-size: 0.8rem; color: var(--muted-light); line-height: 1.4;
+        }
+        .control-demerit-stats {
+            display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1;
+        }
+        .control-demerit-points {
+            font-size: 1.5rem; font-weight: 800; color: var(--warning);
+            font-variant-numeric: tabular-nums;
+        }
+        .control-demerit-penalty {
+            font-family: 'Consolas', monospace; font-size: 0.95rem;
+            font-weight: 700; color: var(--accent);
+        }
+        .control-demerit-actions {
+            display: flex; gap: 10px; flex-shrink: 0;
+        }
+        .btn-demerit {
+            width: 56px; height: 56px; padding: 0;
+            font-size: 1.75rem; font-weight: 700; line-height: 1;
+            border: 2px solid var(--warning); background: var(--surface);
+            color: var(--warning); cursor: pointer; font-family: inherit;
+        }
+        .btn-demerit:hover:not(:disabled) {
+            background: var(--warning-tint-soft); color: var(--text);
+        }
+        .btn-demerit:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn-demerit-add { border-color: var(--accent); color: var(--accent); }
+        .btn-demerit-add:hover:not(:disabled) {
+            background: var(--accent-tint-soft); color: var(--text);
+        }
+        .btn-demerit-confirm {
+            flex: 1 1 100%; min-height: 48px; padding: 12px 20px;
+            font-size: 0.95rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; border: 2px solid var(--success);
+            background: var(--success-tint); color: var(--success);
+            cursor: pointer; font-family: inherit;
+        }
+        .btn-demerit-confirm:hover:not(:disabled) {
+            background: var(--success); color: #000;
+        }
+        .btn-demerit-confirm:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn-demerit-confirm.hidden { display: none; }
+        .demerit-badge {
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--accent);
+            border: 1px solid var(--accent-tint-border);
+            background: var(--accent-tint-soft); padding: 2px 6px;
+            flex-shrink: 0;
+        }
         .btn-stop { background: var(--accent); color: white; }
         .btn-undo { background: var(--undo-bg); color: var(--warning); border: 2px solid var(--warning); }
         .btn-undo:disabled { opacity: 0.35; cursor: not-allowed; }
@@ -443,6 +535,7 @@
             line-height: 1;
         }
         #main-timer.live { color: var(--success); }
+        #main-timer.live.warn { color: var(--warning); }
         #main-timer.dim { color: var(--border); }
         .display-next-block {
             flex-shrink: 0; background: var(--card); border: 1px solid var(--card-outline);
@@ -877,6 +970,22 @@
                 <div id="control-list-pending" class="control-col-list"></div>
             </section>
         </div>
+        <section id="control-demerit-block" class="control-demerit hidden" aria-live="polite">
+            <div class="control-demerit-head">
+                <h3 class="control-demerit-title">Task Demerits</h3>
+                <span id="control-demerit-team" class="control-demerit-team"></span>
+            </div>
+            <p id="control-demerit-hint" class="control-demerit-hint"></p>
+            <div class="control-demerit-stats">
+                <span id="control-demerit-points" class="control-demerit-points">0 pts</span>
+                <span id="control-demerit-penalty" class="control-demerit-penalty">+00:00.000 penalty</span>
+            </div>
+            <div class="control-demerit-actions">
+                <button type="button" id="demerit-minus-btn" class="btn-demerit" onclick="controlDemerit(-1)" title="Remove demerit point" aria-label="Remove demerit point">−</button>
+                <button type="button" id="demerit-plus-btn" class="btn-demerit btn-demerit-add" onclick="controlDemerit(1)" title="Add demerit point" aria-label="Add demerit point">+</button>
+            </div>
+            <button type="button" id="demerit-confirm-btn" class="btn-demerit-confirm hidden" onclick="controlConfirmDemerits()">Confirm with referees</button>
+        </section>
         <footer class="control-bar state-idle">
             <div id="control-live">
                 <div class="control-live-now">NOW:</div>
@@ -1045,6 +1154,7 @@
         const JEUGD_TEAM_SIZE = 2;
         const WOMAN_BONUS_SEC = 5;
         const VERKLEED_BONUS_SEC = 10;
+        const DEFAULT_DEMERIT_SEC_PER_POINT = 5;
         const CATEGORIES = {
             gemengd: { label: 'Gemengd' },
             vrouwen: { label: 'Vrouwen' },
@@ -1066,6 +1176,8 @@
         let controlResultsSort = 'recent';
         /** @type {'recent'|'best'} */
         let managerResultsSort = 'recent';
+        /** Finished team id reopened for demerit editing from the past-races list. */
+        let demeritEditTeamId = null;
         let undoSnapshot = null;
         /** Keep local undo until the server confirms it (avoids null broadcast wiping the button). */
         let undoPendingServer = false;
@@ -1084,6 +1196,8 @@
         let countdownEnd = null;
         /** @type {Team[]} */
         let teams = [];
+        /** Seconds added to official time per task demerit point (synced from server). */
+        let demeritSecondsPerPoint = DEFAULT_DEMERIT_SEC_PER_POINT;
 
         /**
          * @typedef {'gemengd'|'vrouwen'|'jeugd'} CategoryKey
@@ -1104,6 +1218,9 @@
          * @property {TeamStatus} status
          * @property {number} runStartTime — ms when run began (0 if not started)
          * @property {number} [finishedAt] — ms when stopped; used for “Last Races” sort
+         * @property {number} [demeritPoints] — failed task count; adds time at finish
+         * @property {boolean} [demeritsConfirmed] — referees signed off post-race points
+         * @property {number} [runElapsedSec] — raw clock seconds at finish (before bonuses/demerits)
          */
 
         /**
@@ -1112,6 +1229,7 @@
          * @property {number|null} raceStartTime
          * @property {number|null} countdownEnd
          * @property {Team[]} teams
+         * @property {number} [demeritSecondsPerPoint]
          */
 
         // --- Session sync --------------------------------------------------------
@@ -1189,8 +1307,62 @@
                 t.category = categoryFromMembers(t.members);
             }
             t.verkleed = !!t.verkleed;
+            t.demeritPoints = Math.max(0, Math.floor(Number(t.demeritPoints) || 0));
+            if (t.status === 'finished' && t.demeritsConfirmed == null) {
+                t.demeritsConfirmed = true;
+            } else {
+                t.demeritsConfirmed = !!t.demeritsConfirmed;
+            }
+            if (t.runElapsedSec != null) t.runElapsedSec = Math.max(0, Number(t.runElapsedSec) || 0);
             if (t.finishedAt != null) t.finishedAt = toMs(t.finishedAt);
             return t;
+        }
+
+        /** @param {unknown} value @returns {number} */
+        function sanitizeDemeritSeconds(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n) || n < 0) return DEFAULT_DEMERIT_SEC_PER_POINT;
+            return Math.min(n, 3600);
+        }
+
+        /** @param {Team} team @returns {number} */
+        function demeritPenaltySec(team) {
+            return (team.demeritPoints ?? 0) * demeritSecondsPerPoint;
+        }
+
+        /** @returns {Team|undefined} Most recent finished team awaiting referee confirm. */
+        function unconfirmedDemeritTeam() {
+            return teams
+                .filter((t) => t.status === 'finished' && !t.demeritsConfirmed)
+                .sort((a, b) => (b.finishedAt ?? b.id) - (a.finishedAt ?? a.id))[0];
+        }
+
+        /** @returns {Team|undefined} Team whose demerits are shown/edited on the control panel. */
+        function demeritReviewTeam() {
+            const racing = currentRacing();
+            if (racing) return racing;
+            if (demeritEditTeamId != null) {
+                const editing = teams.find((t) => t.id === demeritEditTeamId);
+                if (editing?.status === 'finished' && !editing.demeritsConfirmed) return editing;
+                demeritEditTeamId = null;
+            }
+            return unconfirmedDemeritTeam();
+        }
+
+        /** @param {Team} team */
+        function recalculateTeamTotalTime(team) {
+            if (team.runElapsedSec == null) return;
+            team.totalTime = officialFinishTime(team, team.runElapsedSec);
+        }
+
+        /** @param {Team} team @returns {number} Official time with bonuses but without demerit penalty. */
+        function officialTimeWithoutDemerit(team) {
+            if (team.runElapsedSec != null) {
+                return officialFinishTime({ ...team, demeritPoints: 0 }, team.runElapsedSec);
+            }
+            const penalty = demeritPenaltySec(team);
+            if (penalty > 0) return Math.max(0, team.totalTime - penalty);
+            return team.totalTime;
         }
 
         /**
@@ -1206,7 +1378,18 @@
                 time = Math.max(0, time - womenCount(team) * WOMAN_BONUS_SEC);
             }
             if (team.verkleed) time = Math.max(0, time - VERKLEED_BONUS_SEC);
+            time += demeritPenaltySec(team);
             return time;
+        }
+
+        /**
+         * Live or projected official time including bonuses and demerits.
+         * @param {Team} team
+         * @param {number} elapsedSec
+         * @returns {number}
+         */
+        function projectedOfficialTime(team, elapsedSec) {
+            return officialFinishTime(team, elapsedSec);
         }
 
         /**
@@ -1396,7 +1579,7 @@
 
         /** @returns {Session} */
         function getSession() {
-            return { raceState, raceStartTime, countdownEnd, teams };
+            return { raceState, raceStartTime, countdownEnd, teams, demeritSecondsPerPoint };
         }
 
         /** Load session from storage, channel, or backup. @param {Session|null|undefined} data */
@@ -1419,6 +1602,7 @@
             countdownEnd = toMs(raceData.countdownEnd);
             const raw = raceData.teams ?? raceData.drivers;
             teams = Array.isArray(raw) ? raw.map(normalizeTeam) : [];
+            demeritSecondsPerPoint = sanitizeDemeritSeconds(raceData.demeritSecondsPerPoint);
             if (raceState !== 'COUNTDOWN') clearCountdownTimer();
             if (mode === 'control') updateUndoButton();
             renderUI();
@@ -1739,12 +1923,16 @@
                 raceState: session.raceState,
                 raceStartTime: toMs(session.raceStartTime),
                 countdownEnd: toMs(session.countdownEnd),
+                demeritSecondsPerPoint: sanitizeDemeritSeconds(session.demeritSecondsPerPoint),
                 teams: teamList.map((t, i) => normalizeTeam({
                     id: t.id ?? Date.now() + i,
                     name: t.name.trim(),
                     category: CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY,
                     members: t.members,
                     verkleed: !!t.verkleed,
+                    demeritPoints: Number(t.demeritPoints) || 0,
+                    demeritsConfirmed: t.demeritsConfirmed === true,
+                    runElapsedSec: t.runElapsedSec != null ? Number(t.runElapsedSec) : undefined,
                     totalTime: Number(t.totalTime) || 0,
                     status: t.status,
                     runStartTime: toMs(t.runStartTime) ?? 0,
@@ -2073,7 +2261,9 @@
             if (controlLoopId != null) return;
             function tick() {
                 if (mode === 'control') {
-                    if (raceState === 'RACING' || raceState === 'COUNTDOWN') renderControl();
+                    if (raceState === 'RACING' || raceState === 'COUNTDOWN' || unconfirmedDemeritTeam()) {
+                        renderControl();
+                    }
                     controlLoopId = requestAnimationFrame(tick);
                 } else {
                     controlLoopId = null;
@@ -2250,6 +2440,8 @@
                 category,
                 members,
                 verkleed: isVerkleedAddOn(),
+                demeritPoints: 0,
+                demeritsConfirmed: false,
                 totalTime: 0,
                 status: 'pending',
                 runStartTime: 0,
@@ -2375,7 +2567,13 @@
 
         /** @returns {Session} */
         function emptySession() {
-            return { raceState: 'IDLE', raceStartTime: null, countdownEnd: null, teams: [] };
+            return {
+                raceState: 'IDLE',
+                raceStartTime: null,
+                countdownEnd: null,
+                teams: [],
+                demeritSecondsPerPoint,
+            };
         }
 
         // --- Control -------------------------------------------------------------
@@ -2419,12 +2617,18 @@
             raceStartTime = Date.now();
             team.status = 'racing';
             team.runStartTime = raceStartTime;
+            team.demeritPoints = 0;
+            team.demeritsConfirmed = false;
+            demeritEditTeamId = null;
             sync();
         }
 
         /** Start countdown for the next pending team (control tab only). */
         function controlStart() {
             if (raceState !== 'IDLE') return;
+            if (unconfirmedDemeritTeam()) {
+                return alert('Confirm task demerits with referees before starting the next run.');
+            }
             const next = nextPending();
             if (!next) return alert('No pending teams left!');
 
@@ -2455,16 +2659,63 @@
             pushUndo();
             if (current) {
                 const elapsed = (Date.now() - current.runStartTime) / 1000;
+                current.runElapsedSec = elapsed;
                 current.totalTime = officialFinishTime(current, elapsed);
                 current.status = 'finished';
                 current.finishedAt = Date.now();
+                current.demeritsConfirmed = false;
             }
+            demeritEditTeamId = null;
             raceState = 'IDLE';
             raceStartTime = null;
             countdownEnd = null;
             clearCountdownTimer();
             if (soundEnabled) playStopRecorded();
             sync();
+        }
+
+        /** Add or remove a task demerit point for the team under review. @param {number} delta */
+        function controlDemerit(delta) {
+            if (mode !== 'control') return;
+            const team = demeritReviewTeam();
+            if (!team) return;
+            const editable = team.status === 'racing'
+                || (team.status === 'finished' && !team.demeritsConfirmed);
+            if (!editable) return;
+            const next = Math.max(0, (team.demeritPoints ?? 0) + delta);
+            if (next === team.demeritPoints) return;
+            team.demeritPoints = next;
+            if (team.status === 'finished') recalculateTeamTotalTime(team);
+            sync();
+        }
+
+        /** Lock in demerit points after referee review. */
+        function controlConfirmDemerits() {
+            if (mode !== 'control') return;
+            const team = demeritReviewTeam();
+            if (!team || team.status !== 'finished' || team.demeritsConfirmed) return;
+            recalculateTeamTotalTime(team);
+            team.demeritsConfirmed = true;
+            demeritEditTeamId = null;
+            sync();
+        }
+
+        /** Reopen demerit editing for a finished team from the past-races list. @param {number} id */
+        function controlEditDemerits(id) {
+            if (mode !== 'control') return;
+            if (raceState === 'RACING' || raceState === 'COUNTDOWN') {
+                return alert('Cannot edit points while a run is in progress.');
+            }
+            const team = teams.find((t) => t.id === id);
+            if (!team || team.status !== 'finished') return;
+            const active = demeritReviewTeam();
+            if (active?.status === 'finished' && !active.demeritsConfirmed && active.id !== id) {
+                return alert(`Confirm demerits for "${active.name}" before editing another team.`);
+            }
+            team.demeritsConfirmed = false;
+            demeritEditTeamId = id;
+            sync();
+            document.getElementById('control-demerit-block')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         document.addEventListener('keydown', (e) => {
@@ -2555,6 +2806,38 @@
             return div;
         }
 
+        function appendResultTimes(parent, team) {
+            const pts = team.demeritPoints ?? 0;
+            if (pts <= 0) {
+                const time = document.createElement('span');
+                time.className = 'control-result-time';
+                time.textContent = formatTime(team.totalTime);
+                parent.appendChild(time);
+                return;
+            }
+            const wrap = document.createElement('div');
+            wrap.className = 'control-result-times';
+            wrap.title = 'Raw time → demerits → official time';
+
+            const raw = document.createElement('span');
+            raw.className = 'control-result-time control-result-time--raw';
+            raw.title = 'Time without demerit';
+            raw.textContent = formatTime(officialTimeWithoutDemerit(team));
+
+            const badge = document.createElement('span');
+            badge.className = 'demerit-badge';
+            badge.title = `+${formatTime(demeritPenaltySec(team))} penalty`;
+            badge.textContent = `+${pts} pt`;
+
+            const final = document.createElement('span');
+            final.className = 'control-result-time control-result-time--final';
+            final.title = 'Official time with demerit';
+            final.textContent = formatTime(team.totalTime);
+
+            wrap.append(raw, badge, final);
+            parent.appendChild(wrap);
+        }
+
         function renderFinishedRow(t, rank, isBestSort) {
             const cat = CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY;
             const div = document.createElement('div');
@@ -2568,10 +2851,7 @@
             const actions = document.createElement('div');
             actions.className = 'control-result-actions';
 
-            const time = document.createElement('span');
-            time.className = 'control-result-time';
-            time.textContent = formatTime(t.totalTime);
-            actions.appendChild(time);
+            appendResultTimes(actions, t);
 
             const del = document.createElement('button');
             del.className = 'btn-del';
@@ -2627,7 +2907,7 @@
             return div;
         }
 
-        function renderControlResultRow(t, rank, isBestSort) {
+        function renderControlResultRow(t, rank, isBestSort, { showEditPoints = false } = {}) {
             const cat = CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY;
             const div = document.createElement('div');
             div.className = `control-result-item cat-${cat}${isBestSort && rank === 1 ? ' best-rank' : ''}`;
@@ -2635,16 +2915,35 @@
             const top = document.createElement('div');
             top.className = 'control-result-top';
             top.appendChild(buildTeamLabel(t, { showCategory: false, showComposition: false }));
-            const time = document.createElement('span');
-            time.className = 'control-result-time';
-            time.textContent = formatTime(t.totalTime);
-            top.appendChild(time);
+
+            const actions = document.createElement('div');
+            actions.className = 'control-result-actions';
+            appendResultTimes(actions, t);
+
+            if (showEditPoints) {
+                const editing = demeritReviewTeam();
+                const isActiveEdit = editing?.id === t.id
+                    && t.status === 'finished'
+                    && !t.demeritsConfirmed;
+                const edit = document.createElement('button');
+                edit.type = 'button';
+                edit.className = 'btn-edit-points';
+                edit.textContent = isActiveEdit ? 'Editing…' : 'Edit points';
+                edit.disabled = isActiveEdit;
+                edit.title = isActiveEdit
+                    ? 'Demerits open in panel below'
+                    : 'Adjust task demerit points for this run';
+                edit.onclick = () => controlEditDemerits(t.id);
+                actions.appendChild(edit);
+            }
+
+            top.appendChild(actions);
             div.appendChild(top);
             return div;
         }
 
         /**
-         * Control panel: queues, past races, live bottom bar.
+         * Control panel: queues, past races, live bottom bar, demerit block.
          * Sets .control-bar state-{idle|countdown|racing} for bar tint.
          */
         function renderControl() {
@@ -2656,6 +2955,14 @@
             const liveTimer = document.getElementById('control-live-timer');
             const listPending = document.getElementById('control-list-pending');
             const listFinished = document.getElementById('control-list-finished');
+            const demeritBlock = document.getElementById('control-demerit-block');
+            const demeritTeamEl = document.getElementById('control-demerit-team');
+            const demeritHintEl = document.getElementById('control-demerit-hint');
+            const demeritPointsEl = document.getElementById('control-demerit-points');
+            const demeritPenaltyEl = document.getElementById('control-demerit-penalty');
+            const demeritMinusBtn = document.getElementById('demerit-minus-btn');
+            const demeritPlusBtn = document.getElementById('demerit-plus-btn');
+            const demeritConfirmBtn = document.getElementById('demerit-confirm-btn');
 
             const racing = currentRacing();
             const next = nextPending();
@@ -2697,8 +3004,8 @@
                 liveCat.appendChild(badge);
                 liveName.textContent = racing.name;
                 const elapsed = raceStartTime ? (Date.now() - raceStartTime) / 1000 : 0;
-                liveTimer.textContent = formatTime(elapsed);
-                liveTimer.className = '';
+                liveTimer.textContent = formatTime(projectedOfficialTime(racing, elapsed));
+                liveTimer.className = (racing.demeritPoints ?? 0) > 0 ? 'warn' : '';
             } else {
                 controlLights?.classList.add('hidden');
                 controlLights?.setAttribute('aria-hidden', 'true');
@@ -2715,11 +3022,29 @@
                 liveTimer.className = 'dim';
             }
 
+            const reviewTeam = demeritReviewTeam();
+            const awaitingConfirm = reviewTeam?.status === 'finished' && !reviewTeam.demeritsConfirmed;
+            const showDemerits = !!reviewTeam;
+            demeritBlock?.classList.toggle('hidden', !showDemerits);
+            demeritBlock?.classList.toggle('control-demerit--review', !!awaitingConfirm);
+            if (reviewTeam) {
+                const pts = reviewTeam.demeritPoints ?? 0;
+                demeritTeamEl.textContent = reviewTeam.name;
+                demeritHintEl.textContent = awaitingConfirm
+                    ? 'Review points with referees — adjust if needed, then confirm.'
+                    : 'Award points during the run — confirm with referees after finish.';
+                demeritPointsEl.textContent = `${pts} pt${pts === 1 ? '' : 's'}`;
+                demeritPenaltyEl.textContent = `+${formatTime(demeritPenaltySec(reviewTeam))} penalty`;
+                demeritMinusBtn.disabled = pts <= 0;
+                demeritPlusBtn.disabled = false;
+                demeritConfirmBtn?.classList.toggle('hidden', !awaitingConfirm);
+            }
+
             if (finished.length === 0) renderEmpty(listFinished, 'No races yet');
             else {
                 listFinished.replaceChildren();
                 finished.forEach((t, i) => {
-                    listFinished.appendChild(renderControlResultRow(t, i + 1, controlResultsSort === 'best'));
+                    listFinished.appendChild(renderControlResultRow(t, i + 1, controlResultsSort === 'best', { showEditPoints: true }));
                 });
             }
 
@@ -2727,7 +3052,7 @@
             const busy = raceState === 'RACING' || raceState === 'COUNTDOWN';
             startBtn.classList.toggle('hidden', busy);
             stopBtn.classList.toggle('hidden', !busy);
-            startBtn.disabled = !next && !busy;
+            startBtn.disabled = (!next && !busy) || !!unconfirmedDemeritTeam();
             updateUndoButton();
             if (controlBar) {
                 controlBar.classList.remove('state-idle', 'state-countdown', 'state-racing');
@@ -2845,8 +3170,11 @@
                 statusPill.className = 'racing';
                 renderCategoryBadge(document.getElementById('display-live-cat'), racingTeam);
                 liveNameEl.textContent = racingTeam ? racingTeam.name : '—';
-                timerEl.textContent = formatTime((Date.now() - raceStartTime) / 1000);
-                timerEl.className = 'live';
+                const elapsed = (Date.now() - raceStartTime) / 1000;
+                timerEl.textContent = formatTime(
+                    racingTeam ? projectedOfficialTime(racingTeam, elapsed) : elapsed,
+                );
+                timerEl.className = racingTeam && (racingTeam.demeritPoints ?? 0) > 0 ? 'live warn' : 'live';
             } else {
                 statusPill.textContent = 'Ready';
                 statusPill.className = 'idle';

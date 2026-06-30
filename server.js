@@ -12,6 +12,7 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const SESSION_FILE = path.join(__dirname, 'data', 'session.json');
 
 const COUNTDOWN_SEC = 5;
+const DEFAULT_DEMERIT_SEC_PER_POINT = 5;
 
 /** @type {import('ws').WebSocket[]} */
 const clients = [];
@@ -28,7 +29,14 @@ let undoSnapshot = null;
  * @property {number|null} raceStartTime
  * @property {number|null} countdownEnd
  * @property {unknown[]} teams
+ * @property {number} demeritSecondsPerPoint — seconds added per task demerit point
  */
+
+function sanitizeDemeritSeconds(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return DEFAULT_DEMERIT_SEC_PER_POINT;
+  return Math.min(n, 3600);
+}
 
 function emptySession() {
   return {
@@ -36,6 +44,7 @@ function emptySession() {
     raceStartTime: null,
     countdownEnd: null,
     teams: [],
+    demeritSecondsPerPoint: DEFAULT_DEMERIT_SEC_PER_POINT,
   };
 }
 
@@ -52,6 +61,7 @@ function sanitizeSession(raw) {
     raceStartTime: toMs(raw?.raceStartTime),
     countdownEnd: toMs(raw?.countdownEnd),
     teams: Array.isArray(raw?.teams) ? raw.teams : Array.isArray(raw?.drivers) ? raw.drivers : [],
+    demeritSecondsPerPoint: sanitizeDemeritSeconds(raw?.demeritSecondsPerPoint),
   };
 
   if (next.raceState === 'COUNTDOWN') {
@@ -149,6 +159,7 @@ function snapshotForUndo() {
 
 function applyUndo() {
   if (!undoSnapshot) return false;
+  const demeritSecondsPerPoint = session.demeritSecondsPerPoint;
   let restored = sanitizeSession(undoSnapshot);
   if (restored.raceState === 'COUNTDOWN') {
     restored = { ...restored, raceState: 'IDLE', countdownEnd: null };
@@ -163,12 +174,16 @@ function applyUndo() {
     });
   }
   session = restored;
+  session.demeritSecondsPerPoint = demeritSecondsPerPoint;
   undoSnapshot = null;
   return true;
 }
 
 function setSession(next) {
-  session = sanitizeSession(next);
+  const demeritSecondsPerPoint = next?.demeritSecondsPerPoint != null
+    ? sanitizeDemeritSeconds(next.demeritSecondsPerPoint)
+    : session.demeritSecondsPerPoint ?? DEFAULT_DEMERIT_SEC_PER_POINT;
+  session = sanitizeSession({ ...next, demeritSecondsPerPoint });
   saveSessionToDisk();
   broadcast({ type: 'session', session: sessionPayload() });
 }
@@ -192,6 +207,8 @@ function tickCountdown() {
   session.raceStartTime = Date.now();
   next.status = 'racing';
   next.runStartTime = session.raceStartTime;
+  next.demeritPoints = 0;
+  next.demeritsConfirmed = false;
   saveSessionToDisk();
   broadcast({ type: 'session', session: sessionPayload() });
 }
@@ -272,7 +289,9 @@ wss.on('connection', (ws) => {
 
     if (msg.type === 'reset') {
       if (role !== 'manager' && role !== 'home') return;
+      const demeritSecondsPerPoint = session.demeritSecondsPerPoint;
       session = emptySession();
+      session.demeritSecondsPerPoint = demeritSecondsPerPoint;
       undoSnapshot = null;
       saveSessionToDisk();
       broadcast({ type: 'session', session: sessionPayload() });
@@ -292,6 +311,14 @@ wss.on('connection', (ws) => {
       if (session.raceState === 'RACING' || session.raceState === 'COUNTDOWN') return;
       undoSnapshot = null;
       setSession(msg.session);
+      return;
+    }
+
+    if (msg.type === 'updateSettings') {
+      if (role !== 'home' && role !== 'manager') return;
+      session.demeritSecondsPerPoint = sanitizeDemeritSeconds(msg.demeritSecondsPerPoint);
+      saveSessionToDisk();
+      broadcast({ type: 'session', session: sessionPayload() });
       return;
     }
 
