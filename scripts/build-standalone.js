@@ -8,8 +8,8 @@ const ROOT = path.join(__dirname, '..');
 const pkg = require(path.join(ROOT, 'package.json'));
 
 const TARGETS = {
-  darwin: ['node20-macos-x64', 'node20-macos-arm64'],
-  win32: ['node20-win-x64'],
+  darwin: ['node18-macos-x64', 'node18-macos-arm64'],
+  win32: ['node18-win-x64'],
 };
 
 function platformTag() {
