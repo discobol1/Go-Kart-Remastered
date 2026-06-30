@@ -1,50 +1,90 @@
 # Go-Kart Remastered
 
-Local race timing for go-kart team time trials. One Node server syncs three browser views over your Wi‑Fi.
+Local race timing for go-kart team time trials. One server syncs the display, manager, and official views over your Wi‑Fi.
 
-## Quick start
+## One-click start
 
-On the **host PC** (connected to the projector/TV):
+### Developers (this folder)
+
+1. Install [Node.js 18+](https://nodejs.org/)
+2. Double-click:
+   - **Mac:** `Start Go-Kart Remastered.command`
+   - **Windows:** `Start Go-Kart Remastered.bat`
+
+The first run installs dependencies automatically. Your browser opens the setup page with shareable URLs and QR codes.
+
+### Command line (same thing)
 
 ```bash
 npm install
-npm run start:host    # starts server and opens the public display
+npm run launch
 ```
 
-Or without auto-opening the browser:
-
-```bash
-npm start
-```
-
-Then open **http://localhost:8765/** for the setup page with shareable URLs and QR codes.
-
-## Three devices
+## Three devices during an event
 
 | Device | Role | URL |
 |--------|------|-----|
 | Host PC / projector | Public display | `http://<host-ip>:8765/display` |
-| Laptop | Race manager (add teams) | `http://<host-ip>:8765/manager` |
+| Laptop | Race manager (teams) | `http://<host-ip>:8765/manager` |
 | iPad | Race official (timing) | `http://<host-ip>:8765/control` |
 
-The server prints your LAN IP on startup. The setup page shows copyable URLs and QR codes for the laptop and iPad.
+The setup page shows your LAN IP, copyable URLs, and QR codes. Only the host PC should use `localhost`; other devices need the network IP (e.g. `192.168.x.x`).
 
-**Important:** Only the host PC should use `localhost`. Other devices must use the host's network IP (e.g. `192.168.x.x`).
+## Building a release for others
+
+Use this when you want to hand off a folder or zip to someone else, or ship a new version after making changes.
+
+### Portable package (Node.js required on the target PC)
+
+On **Mac or Windows**, from this project folder:
+
+```bash
+npm install
+npm run build
+```
+
+Output: `release/Go-Kart-Remastered-v<version>-<platform>/`
+
+Zip that folder and share it. The recipient needs Node.js 18+ and double-clicks the launcher inside the folder.
+
+### Standalone package (no Node.js on the target PC)
+
+On **Mac or Windows** (build on the OS you are targeting):
+
+```bash
+npm install
+npm run build:standalone
+```
+
+Output: `release/Go-Kart-Remastered-v<version>-standalone-<platform>/`
+
+Contains a compiled server binary plus `public/` and launchers. Zip and share — recipients do not need Node.js.
+
+### Version bumps
+
+Edit `"version"` in `package.json` before running `npm run build` or `npm run build:standalone`. The release folder name includes the version.
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 18+ (for development and portable releases)
 - All devices on the **same Wi‑Fi/LAN**
-- Host firewall allows inbound TCP on port **8765** (override with `PORT=9000 npm start`)
+- Host firewall allows inbound TCP on port **8765** (override with `PORT=9000`)
 
 ## Race day tips
 
 1. Click **"Click to enable sound"** on the display once before the first countdown.
 2. Only one device should run the **Race Official** view during the event.
-3. Use **Backup Race Data** on the setup page before and after the event.
-4. Race data is auto-saved on the server in `data/session.json` (survives refresh; cleared on Reset).
+3. Use **Racedata back-uppen** on the setup page before and after the event.
+4. Race data is auto-saved in `data/session.json` on the host (survives refresh; cleared on Reset).
 
 ## Keyboard shortcuts (Race Official)
 
 - **Space** — Start / Finish
 - **Z** — Undo last action
+
+## Tests
+
+```bash
+npm test          # full suite (61 checks)
+npm run test:debug
+```

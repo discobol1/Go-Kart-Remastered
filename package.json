@@ -5,7 +5,10 @@
   "description": "Local race server for Go-Kart Remastered timing system",
   "scripts": {
     "start": "node server.js",
-    "start:host": "node scripts/start-host.js",
+    "start:host": "node scripts/launch.js",
+    "launch": "node scripts/launch.js",
+    "build": "node scripts/build-release.js",
+    "build:standalone": "node scripts/build-standalone.js",
     "test": "node scripts/integration-test.js",
     "test:debug": "node scripts/debug-suite.js"
   },

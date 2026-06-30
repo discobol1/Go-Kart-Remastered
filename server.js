@@ -6,10 +6,11 @@ const path = require('path');
 const os = require('os');
 const express = require('express');
 const { WebSocketServer } = require('ws');
+const { appRoot, publicDir, sessionFile } = require('./scripts/paths');
 
 const PORT = Number(process.env.PORT) || 8765;
-const PUBLIC_DIR = path.join(__dirname, 'public');
-const SESSION_FILE = path.join(__dirname, 'data', 'session.json');
+const PUBLIC_DIR = publicDir();
+const SESSION_FILE = sessionFile();
 
 const COUNTDOWN_SEC = 5;
 const DEFAULT_DEMERIT_SEC_PER_POINT = 10;

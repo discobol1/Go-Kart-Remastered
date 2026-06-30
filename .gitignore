@@ -1,3 +1,5 @@
 node_modules/
 data/session.json
+release/
+dist/
 .DS_Store
