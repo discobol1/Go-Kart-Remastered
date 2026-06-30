@@ -40,8 +40,8 @@
             padding-bottom: max(var(--page-pad), env(safe-area-inset-bottom));
         }
         .wrap {
-            max-width: 960px; margin: 0 auto;
             width: 100%;
+            max-width: none;
         }
         header {
             margin-bottom: clamp(20px, 4vw, 36px);
@@ -203,6 +203,20 @@
         .settings-field input:focus {
             outline: none; border-color: var(--warning);
         }
+        .settings-field input:disabled { opacity: 0.55; cursor: not-allowed; }
+        .settings-field--passcode { flex: 0 1 200px; max-width: 200px; }
+        .settings-lock-status {
+            align-self: flex-end; padding: 12px 14px;
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; border: 1px solid var(--border-strong);
+            color: var(--muted); background: var(--surface-deep);
+        }
+        .settings-lock-status--unlocked {
+            color: var(--success); border-color: var(--success);
+            background: var(--success-tint, color-mix(in srgb, var(--success) 12%, transparent));
+        }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn:disabled:hover { border-color: var(--border-strong); color: inherit; }
         .settings-status {
             margin-top: 12px; font-size: 0.85rem; color: var(--muted-dim);
         }
@@ -219,6 +233,7 @@
             color: var(--muted-light); font-size: 0.85rem; line-height: 1.55;
         }
         .settings-warning strong { color: var(--accent); }
+        #race-data-settings .settings-row + p { margin-top: 16px; }
         .settings-actions {
             display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;
         }
@@ -322,8 +337,20 @@
             </article>
         </div>
 
-        <section class="settings-card" id="race-settings">
-            <h2>Race-instellingen</h2>
+        <section class="settings-card settings-card--danger" id="race-data-settings">
+            <h2>Racedata</h2>
+            <p class="settings-warning">
+                <strong>Beschermde acties.</strong> Back-up, herstel, verwijderen en strafpunt-instellingen gelden voor elk verbonden scherm.
+                Een code is vereist. Herstel of verwijder niet tijdens een actieve aftelling of run.
+            </p>
+            <div class="settings-row">
+                <div class="settings-field settings-field--passcode">
+                    <label for="admin-passcode">Pincode</label>
+                    <input type="password" id="admin-passcode" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••">
+                </div>
+                <button type="button" class="btn" id="settings-unlock-btn">Ontgrendelen</button>
+                <span id="settings-lock-status" class="settings-lock-status settings-lock-status--locked" aria-live="polite">Vergrendeld</span>
+            </div>
             <p>
                 Taakstraffen voegen boetetijd toe aan de officiële tijd van een team.
                 Officials geven punten tijdens een run op de iPad; elk punt telt de seconden hieronder.
@@ -335,28 +362,18 @@
                 </div>
                 <button type="button" class="btn" id="demerit-save-btn">Opslaan</button>
             </div>
-            <p class="settings-status" id="settings-status">Verbinden met server…</p>
-        </section>
-
-        <section class="settings-card settings-card--danger" id="race-data-settings">
-            <h2>Racedata</h2>
-            <p class="settings-warning">
-                <strong>Beschermde acties.</strong> Back-up, herstel en verwijderen gelden voor elk verbonden scherm.
-                Een code is vereist. Herstel of verwijder niet tijdens een actieve aftelling of run.
+            <p>
+                Maak vóór of tijdens het evenement een back-up: je downloadt een JSON-bestand met teams, tijden, wachtrij en instellingen.
+                Herstellen laadt zo'n bestand en vervangt de live data op manager, official en display — doe dit alleen als de baan vrij is.
+                Verwijderen wist alles voor een schone start; ontgrendel eerst met de pincode. Destructieve acties vragen om een bevestiging.
             </p>
-            <div class="settings-row">
-                <div class="settings-field" style="max-width: 200px;">
-                    <label for="admin-passcode">Organisatorcode</label>
-                    <input type="password" id="admin-passcode" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••">
-                </div>
-            </div>
             <div class="settings-actions">
                 <button type="button" class="btn btn-data" id="backup-data-btn">Racedata back-uppen</button>
                 <button type="button" class="btn btn-data" id="restore-data-btn">Herstellen uit bestand</button>
                 <button type="button" class="btn btn-danger" id="delete-data-btn">Alle racedata verwijderen</button>
             </div>
             <input type="file" id="backup-file-input" accept=".json,application/json">
-            <p class="settings-status" id="data-status"></p>
+            <p class="settings-status" id="data-status">Verbinden met server…</p>
         </section>
     </div>
 
@@ -372,6 +389,7 @@
         let settingsReconnectTimer = null;
         /** @type {Record<string, unknown>|null} */
         let currentSession = null;
+        let settingsUnlocked = false;
 
         function showToast(msg, isError = false) {
             const el = document.getElementById('toast');
@@ -384,22 +402,59 @@
             }, 2200);
         }
 
-        function setDataStatus(text, isError = false) {
+        function setDataStatus(text, isError = false, saved = false) {
             const el = document.getElementById('data-status');
             if (!el) return;
             el.textContent = text;
-            el.classList.toggle('saved', !isError && !!text);
+            el.classList.toggle('saved', saved || (!isError && !!text));
             el.style.color = isError ? 'var(--accent)' : '';
         }
 
-        function verifyPasscode() {
+        function updateSettingsLockUI() {
+            const btn = document.getElementById('settings-unlock-btn');
+            const status = document.getElementById('settings-lock-status');
+            const protectedEls = [
+                document.getElementById('demerit-seconds'),
+                document.getElementById('demerit-save-btn'),
+                document.getElementById('backup-data-btn'),
+                document.getElementById('restore-data-btn'),
+                document.getElementById('delete-data-btn'),
+            ];
+            if (btn) btn.textContent = settingsUnlocked ? 'Vergrendelen' : 'Ontgrendelen';
+            if (status) {
+                status.textContent = settingsUnlocked ? 'Ontgrendeld' : 'Vergrendeld';
+                status.classList.toggle('settings-lock-status--locked', !settingsUnlocked);
+                status.classList.toggle('settings-lock-status--unlocked', settingsUnlocked);
+            }
+            protectedEls.forEach((el) => {
+                if (el) el.disabled = !settingsUnlocked;
+            });
+        }
+
+        function toggleSettingsLock() {
+            if (settingsUnlocked) {
+                settingsUnlocked = false;
+                updateSettingsLockUI();
+                showToast('Instellingen vergrendeld');
+                return;
+            }
             const input = document.getElementById('admin-passcode');
             if (!input || input.value.trim() !== ADMIN_PASSCODE) {
                 showToast('Onjuiste code', true);
                 input?.focus();
-                return false;
+                return;
             }
-            return true;
+            settingsUnlocked = true;
+            input.value = '';
+            updateSettingsLockUI();
+            showToast('Instellingen ontgrendeld');
+        }
+
+        function verifyPasscode() {
+            if (settingsUnlocked) return true;
+            showToast('Eerst ontgrendelen met pincode', true);
+            document.getElementById('admin-passcode')?.focus();
+            return false;
         }
 
         function ensureServerReady() {
@@ -649,13 +704,6 @@
             }
         }
 
-        function setSettingsStatus(text, saved = false) {
-            const el = document.getElementById('settings-status');
-            if (!el) return;
-            el.textContent = text;
-            el.classList.toggle('saved', saved);
-        }
-
         function wsUrl() {
             const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
             return `${protocol}//${location.host}`;
@@ -677,14 +725,14 @@
             try {
                 settingsWs = new WebSocket(wsUrl());
             } catch {
-                setSettingsStatus('Server offline — start npm run start:host');
+                setDataStatus('Server offline — start npm run start:host', true);
                 scheduleSettingsReconnect();
                 return;
             }
 
             settingsWs.onopen = () => {
                 settingsReady = false;
-                setSettingsStatus('Verbinden…');
+                setDataStatus('Verbinden…');
                 settingsWs.send(JSON.stringify({ type: 'hello', role: 'home' }));
             };
 
@@ -697,37 +745,38 @@
                 const sec = msg.session?.demeritSecondsPerPoint;
                 const input = document.getElementById('demerit-seconds');
                 if (input && sec != null) input.value = String(sec);
-                setSettingsStatus('Gesynchroniseerd met server');
+                setDataStatus('Gesynchroniseerd met server');
             };
 
             settingsWs.onclose = () => {
                 settingsReady = false;
-                setSettingsStatus('Opnieuw verbinden…');
+                setDataStatus('Opnieuw verbinden…');
                 scheduleSettingsReconnect();
             };
 
             settingsWs.onerror = () => {
                 settingsReady = false;
-                setSettingsStatus('Verbindingsfout');
+                setDataStatus('Verbindingsfout', true);
             };
         }
 
         function saveDemeritSettings() {
+            if (!verifyPasscode()) return;
             const input = document.getElementById('demerit-seconds');
             if (!input || !settingsWs || settingsWs.readyState !== WebSocket.OPEN || !settingsReady) {
-                showToast('Niet verbonden met server');
+                showToast('Niet verbonden met server', true);
                 return;
             }
             const value = Number(input.value);
             if (!Number.isFinite(value) || value < 0) {
-                showToast('Voer een geldig aantal seconden in');
+                showToast('Voer een geldig aantal seconden in', true);
                 return;
             }
             settingsWs.send(JSON.stringify({
                 type: 'updateSettings',
                 demeritSecondsPerPoint: value,
             }));
-            setSettingsStatus('Opgeslagen', true);
+            setDataStatus('Strafpunt-instelling opgeslagen', false, true);
             showToast('Strafpunt-instelling opgeslagen');
         }
 
@@ -782,6 +831,10 @@
             });
         });
 
+        document.getElementById('settings-unlock-btn')?.addEventListener('click', toggleSettingsLock);
+        document.getElementById('admin-passcode')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') toggleSettingsLock();
+        });
         document.getElementById('demerit-save-btn')?.addEventListener('click', saveDemeritSettings);
         document.getElementById('demerit-seconds')?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveDemeritSettings();
@@ -794,6 +847,7 @@
         });
 
         init();
+        updateSettingsLockUI();
         connectSettingsWs();
     </script>
 </body>

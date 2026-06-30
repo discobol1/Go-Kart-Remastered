@@ -199,6 +199,11 @@
             border-color: #BF40FF; background: rgba(191, 64, 255, 0.15); color: #E0B0FF;
         }
         .verkleed-toggle .verkleed-icon { width: 1.15rem; height: 1.15rem; display: block; }
+        .team-controls .verkleed-toggle-sm {
+            width: 30px; height: 26px; padding: 0; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .team-controls .verkleed-toggle-sm .verkleed-icon { width: 1rem; height: 1rem; }
         .verkleed-badge {
             flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
             padding: 4px 6px; line-height: 0;
@@ -273,9 +278,60 @@
             align-items: flex-start; gap: 8px;
         }
         .team-item.pending {
-            align-items: center;
+            flex-direction: column;
+            align-items: stretch;
             border-left: 4px solid var(--border-strong);
         }
+        .team-item-main {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 8px; width: 100%;
+        }
+        .team-item-edit-panel {
+            display: none; flex-direction: column; align-items: stretch; gap: 10px;
+            width: 100%; padding: 10px 0 0 26px; margin-top: 8px;
+            border-top: 1px solid var(--border); box-sizing: border-box;
+        }
+        .team-item.pending.is-editing .team-item-edit-panel { display: flex; }
+        .pending-edit-field {
+            display: flex; flex-direction: column; gap: 6px;
+            width: 100%; min-width: 0; box-sizing: border-box;
+        }
+        .pending-edit-label {
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--muted);
+        }
+        .pending-edit-name {
+            width: 100%; box-sizing: border-box; padding: 8px 12px;
+            border: 1px solid var(--border-strong); background: var(--input-bg);
+            color: var(--input-text); font-size: 0.95rem; font-family: inherit;
+        }
+        .team-item-edit-panel .cat-select-sm {
+            width: 100%; height: 36px; box-sizing: border-box;
+        }
+        .pending-member-row {
+            display: flex; gap: 4px; width: 100%;
+        }
+        .pending-member-row .member-toggle {
+            flex: 1; min-width: 0; height: 36px;
+        }
+        .team-item-edit-panel .verkleed-toggle {
+            width: 100%; min-width: 0; height: 36px; box-sizing: border-box;
+        }
+        .btn-edit-team {
+            background: var(--surface); color: var(--info);
+            border: 1px solid var(--info); padding: 5px 10px;
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; cursor: pointer; font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn-edit-team:hover { background: var(--info-tint); color: var(--text); }
+        .btn-pending-confirm {
+            width: 100%; padding: 10px 16px; margin-top: 4px; box-sizing: border-box;
+            background: #00C853; color: #000; border: none;
+            font-size: 0.85rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.5px; cursor: pointer; font-family: inherit;
+        }
+        .btn-pending-confirm:hover { background: #00E676; }
         .team-item.pending.cat-gemengd { border-left-color: var(--info); }
         .team-item.pending.cat-vrouwen { border-left-color: var(--accent); }
         .team-item.pending.cat-jeugd { border-left-color: var(--warning); }
@@ -397,7 +453,7 @@
             flex-shrink: 0; margin-top: 12px;
             padding: 14px 16px; border: 1px solid var(--card-outline);
             background: var(--card); box-shadow: 0 0 24px var(--neon-glow);
-            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+            display: flex; flex-direction: column; align-items: stretch; gap: 14px;
         }
         .control-demerit.hidden { display: none; }
         .control-demerit--review {
@@ -419,13 +475,48 @@
         .control-demerit-stats {
             display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1;
         }
+        .control-demerit-row {
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+        }
+        .control-demerit-time-summary {
+            display: flex; flex-direction: column; gap: 6px;
+            padding: 12px 14px;
+            border: 1px solid var(--border-strong);
+            background: var(--surface-deep);
+        }
+        .control-demerit-time-heading {
+            margin: 0 0 4px;
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.2px; color: var(--muted);
+        }
+        .control-demerit-time-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            gap: 12px; font-size: 0.85rem;
+        }
+        .control-demerit-time-row--muted {
+            color: var(--muted-dim); font-style: italic; font-size: 0.8rem;
+        }
+        .control-demerit-time-row--total {
+            margin-top: 4px; padding-top: 8px;
+            border-top: 1px solid var(--border-strong);
+            font-weight: 800; font-size: 0.95rem;
+        }
+        .control-demerit-time-label { color: var(--muted-light); }
+        .control-demerit-time-value {
+            font-family: 'Consolas', monospace; font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+        .control-demerit-time-value.bonus { color: var(--success); }
+        .control-demerit-time-value.penalty { color: var(--accent); }
+        .control-demerit-time-value.raw,
+        .control-demerit-time-value.official { color: var(--text); }
+        .control-demerit-time-value.official { color: var(--success); }
+        .control-demerit-time-note {
+            margin-top: 4px; font-size: 0.75rem; color: var(--muted-dim); font-style: italic;
+        }
         .control-demerit-points {
             font-size: 1.5rem; font-weight: 800; color: var(--warning);
             font-variant-numeric: tabular-nums;
-        }
-        .control-demerit-penalty {
-            font-family: 'Consolas', monospace; font-size: 0.95rem;
-            font-weight: 700; color: var(--accent);
         }
         .control-demerit-actions {
             display: flex; gap: 10px; flex-shrink: 0;
@@ -501,24 +592,40 @@
             padding: 16px; display: flex; flex-direction: column; min-height: 0;
             box-shadow: 0 0 24px var(--neon-glow);
         }
+        .display-col-live { container-type: inline-size; }
+        #display-live-title {
+            width: 100%;
+            font-size: clamp(1.25rem, 11cqi, 4.5rem);
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            line-height: 1.05;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .display-col-list { flex: 1; overflow-y: auto; min-height: 0; }
         #display-live {
             flex: 1; display: flex; flex-direction: column;
             align-items: stretch; text-align: center;
             padding: 12px; min-height: 0;
+            container-type: size;
         }
         .display-live-center {
             flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; min-height: 0;
+            align-items: stretch; justify-content: center; min-height: 0;
+            width: 100%;
         }
         #display-live .team-line {
-            justify-content: center; margin-bottom: 16px; max-width: 100%;
+            flex-shrink: 0;
+            justify-content: center; margin-bottom: clamp(4px, 1cqh, 12px); max-width: 100%;
         }
         #main-timer {
+            flex: 1 1 0; width: 100%; min-height: 0;
+            display: flex; align-items: center; justify-content: center;
             font-family: 'Consolas', monospace;
-            font-size: clamp(3rem, 12vw, 6.5rem);
+            font-size: min(18cqw, 48cqh, 16rem);
             font-weight: 700; font-variant-numeric: tabular-nums;
-            line-height: 1;
+            line-height: 1; white-space: nowrap;
         }
         #main-timer.live { color: var(--success); }
         #main-timer.live.warn { color: var(--warning); }
@@ -849,7 +956,10 @@
             .display-columns .display-col:last-child { max-height: 28vh; }
 
             #main-timer {
-                font-size: clamp(2.5rem, 14vw, 4.5rem);
+                font-size: min(16cqw, 42cqh, 12rem);
+            }
+            #display-live-title {
+                font-size: clamp(1.1rem, 9cqi, 3rem);
             }
             #display-next-up-name {
                 font-size: clamp(1.5rem, 6vw, 2.5rem);
@@ -885,12 +995,12 @@
         </div>
         <div class="manager-columns">
             <section class="manager-col manager-col-pending">
-                <h3 class="col-title">Volgende</h3>
+                <h3 class="col-title">Wachtrij</h3>
                 <div id="on-track-wrap" class="on-track-wrap hidden">
                     <div class="col-subtitle">Op de baan</div>
                     <div id="list-racing"></div>
                 </div>
-                <div class="col-subtitle queue">Rij</div>
+                <div class="col-subtitle queue">Volgende</div>
                 <div id="list-pending" class="manager-col-list"></div>
             </section>
             <section class="manager-col manager-col-finished">
@@ -941,7 +1051,7 @@
             <section class="control-col control-col-past">
                 <h3 class="col-title">Vorige races</h3>
                 <div class="control-sort-bar">
-                    <button type="button" id="sort-recent" class="sort-btn active" onclick="setControlResultsSort('recent')">Laatste runs</button>
+                    <button type="button" id="sort-recent" class="sort-btn active" onclick="setControlResultsSort('recent')">Laatste races</button>
                     <button type="button" id="sort-best" class="sort-btn" onclick="setControlResultsSort('best')">Beste tijden</button>
                 </div>
                 <div id="control-list-finished" class="control-col-list"></div>
@@ -953,18 +1063,20 @@
         </div>
         <section id="control-demerit-block" class="control-demerit hidden" aria-live="polite">
             <div class="control-demerit-head">
-                <h3 class="control-demerit-title">Taakstraffen</h3>
+                <h3 class="control-demerit-title">Strafpunten</h3>
                 <span id="control-demerit-team" class="control-demerit-team"></span>
             </div>
-            <div class="control-demerit-stats">
-                <span id="control-demerit-points" class="control-demerit-points">0 pnt</span>
-                <span id="control-demerit-penalty" class="control-demerit-penalty">+00:00.000 straf</span>
+            <div class="control-demerit-row">
+                <div class="control-demerit-stats">
+                    <span id="control-demerit-points" class="control-demerit-points">0 pnt</span>
+                </div>
+                <div class="control-demerit-actions">
+                    <button type="button" id="demerit-minus-btn" class="btn-demerit" onclick="controlDemerit(-1)" title="Strafpunt verwijderen" aria-label="Strafpunt verwijderen">−</button>
+                    <button type="button" id="demerit-plus-btn" class="btn-demerit btn-demerit-add" onclick="controlDemerit(1)" title="Strafpunt toevoegen" aria-label="Strafpunt toevoegen">+</button>
+                </div>
             </div>
-            <div class="control-demerit-actions">
-                <button type="button" id="demerit-minus-btn" class="btn-demerit" onclick="controlDemerit(-1)" title="Strafpunt verwijderen" aria-label="Strafpunt verwijderen">−</button>
-                <button type="button" id="demerit-plus-btn" class="btn-demerit btn-demerit-add" onclick="controlDemerit(1)" title="Strafpunt toevoegen" aria-label="Strafpunt toevoegen">+</button>
-            </div>
-            <button type="button" id="demerit-confirm-btn" class="btn-demerit-confirm hidden" onclick="controlConfirmDemerits()">Bevestig met jury</button>
+            <div id="control-demerit-time-summary" class="control-demerit-time-summary"></div>
+            <button type="button" id="demerit-confirm-btn" class="btn-demerit-confirm hidden" onclick="controlConfirmDemerits()">Bevestig officiële tijd</button>
         </section>
         <footer class="control-bar state-idle">
             <div id="control-live">
@@ -997,7 +1109,7 @@
             <div id="panel-actions-slot-display"></div>
         </div>
         <div class="display-columns">
-            <section class="display-col">
+            <section class="display-col display-col-live">
                 <h3 class="col-title" id="display-live-title">—</h3>
                 <div id="display-live">
                     <div class="display-live-center">
@@ -1119,7 +1231,7 @@
          *              appendVerkleedBadge, categoryIconSvg
          *
          * POSSIBLE NEXT STEPS
-         *   - Edit composition / Verkleed on existing pending teams
+         *   - Edit category, composition & Verkleed on pending teams (manager queue)
          *   - Filter leaderboard by category
          *   - Fullscreen display mode
          *   - Export results CSV / print view
@@ -1158,6 +1270,7 @@
         let managerResultsSort = 'recent';
         /** Finished team id reopened for demerit editing from the past-races list. */
         let demeritEditTeamId = null;
+        let pendingEditTeamId = null;
         let undoSnapshot = null;
         /** Keep local undo until the server confirms it (avoids null broadcast wiping the button). */
         let undoPendingServer = false;
@@ -1371,6 +1484,120 @@
             return Math.max(0, elapsedSec);
         }
 
+        /** @param {number} sec @returns {string} Signed time delta, e.g. +00:10.000 or −00:05.000 */
+        function formatTimeDelta(sec) {
+            if (!sec) return '00:00.000';
+            const sign = sec > 0 ? '+' : '−';
+            return `${sign}${formatTime(Math.abs(sec))}`;
+        }
+
+        /** Raw clock for the team shown in the demerit review panel. @param {Team} team */
+        function teamReviewRawSec(team) {
+            if (team.status === 'racing' && raceStartTime) {
+                return liveRaceClockSec((Date.now() - raceStartTime) / 1000);
+            }
+            if (team.runElapsedSec != null) return team.runElapsedSec;
+            return 0;
+        }
+
+        /**
+         * Bonus/penalty lines for official review.
+         * @param {Team} team
+         * @returns {{ label: string, delta: number, kind: 'bonus'|'penalty' }[]}
+         */
+        function teamTimeAdjustmentLines(team) {
+            const lines = [];
+            const womenBonus = womenBonusSec(team);
+            if (womenBonus > 0) {
+                const count = womenCount(team);
+                lines.push({
+                    label: count === 1 ? 'Vrouw in gemengd team' : `${count} vrouwen in gemengd team`,
+                    delta: -womenBonus,
+                    kind: 'bonus',
+                });
+            }
+            if (team.verkleed) {
+                lines.push({
+                    label: 'Verkleed',
+                    delta: -VERKLEED_BONUS_SEC,
+                    kind: 'bonus',
+                });
+            }
+            const pts = team.demeritPoints ?? 0;
+            const penalty = demeritPenaltySec(team);
+            if (pts > 0 && penalty > 0) {
+                lines.push({
+                    label: `Taakstraffen (${pts} pnt)`,
+                    delta: penalty,
+                    kind: 'penalty',
+                });
+            }
+            return lines;
+        }
+
+        /** @param {HTMLElement} parent @param {string} label @param {string} value @param {string} valueClass @param {boolean} [total] */
+        function appendDemeritTimeRow(parent, label, value, valueClass, total = false) {
+            const row = document.createElement('div');
+            row.className = `control-demerit-time-row${total ? ' control-demerit-time-row--total' : ''}`;
+            const labelEl = document.createElement('span');
+            labelEl.className = 'control-demerit-time-label';
+            labelEl.textContent = label;
+            const valueEl = document.createElement('span');
+            valueEl.className = `control-demerit-time-value ${valueClass}`;
+            valueEl.textContent = value;
+            row.append(labelEl, valueEl);
+            parent.appendChild(row);
+        }
+
+        /** @param {HTMLElement|null|undefined} container @param {Team} team */
+        function renderControlDemeritTimeSummary(container, team) {
+            if (!container) return;
+            container.replaceChildren();
+
+            const rawSec = teamReviewRawSec(team);
+            const isLive = team.status === 'racing';
+            const adjustments = teamTimeAdjustmentLines(team);
+            const officialSec = officialFinishTime(team, rawSec);
+
+            const heading = document.createElement('h4');
+            heading.className = 'control-demerit-time-heading';
+            heading.textContent = 'Tijdsoverzicht';
+            container.appendChild(heading);
+
+            appendDemeritTimeRow(
+                container,
+                isLive ? 'Ruwe tijd (live)' : 'Ruwe tijd',
+                formatTime(rawSec),
+                'raw',
+            );
+
+            if (adjustments.length === 0) {
+                const none = document.createElement('div');
+                none.className = 'control-demerit-time-row control-demerit-time-row--muted';
+                none.textContent = 'Geen bonussen of straffen';
+                container.appendChild(none);
+            } else {
+                adjustments.forEach((adj) => {
+                    appendDemeritTimeRow(container, adj.label, formatTimeDelta(adj.delta), adj.kind);
+                });
+            }
+
+            appendDemeritTimeRow(
+                container,
+                isLive ? 'Verwachte officiële tijd' : 'Officiële tijd',
+                formatTime(officialSec),
+                'official',
+                true,
+            );
+
+            if (isLive) {
+                const note = document.createElement('p');
+                note.className = 'control-demerit-time-note';
+                note.textContent = 'Bonussen en straffen worden pas verrekend na finish.';
+                container.appendChild(note);
+            }
+        }
+
         /**
          * Sort finished teams for results lists.
          * @param {Team[]} finished
@@ -1489,16 +1716,22 @@
         }
 
         /** Populate a <select> with all categories and apply colored styling. */
-        function fillCategorySelect(select, selected) {
+        function populateCategorySelect(select, selected) {
             if (!select) return;
+            const key = CATEGORIES[selected] ? selected : DEFAULT_CATEGORY;
             select.replaceChildren();
-            Object.entries(CATEGORIES).forEach(([key, { label }]) => {
+            Object.entries(CATEGORIES).forEach(([catKey, { label }]) => {
                 const opt = document.createElement('option');
-                opt.value = key;
+                opt.value = catKey;
                 opt.textContent = label;
                 select.appendChild(opt);
             });
-            setAddCategory(selected);
+            select.value = key;
+            styleCategorySelect(select, key);
+        }
+
+        function fillCategorySelect(select, selected) {
+            populateCategorySelect(select, selected);
         }
 
         /** @param {HTMLSelectElement|null} select @param {CategoryKey|string} category */
@@ -2515,14 +2748,47 @@
             });
         }
 
-        function managerRename(id) {
+        /** @returns {boolean} */
+        function managerSetPendingName(id, name) {
             const target = teams.find((t) => t.id === id);
-            if (!target) return;
-            const name = prompt('Nieuwe teamnaam:', target.name);
-            if (name == null) return;
-            const trimmed = name.trim();
-            if (!trimmed) return alert('Teamnaam mag niet leeg zijn.');
+            if (!target || target.status !== 'pending') return false;
+            const trimmed = String(name).trim();
+            if (!trimmed) return false;
+            if (trimmed === target.name) return true;
             target.name = trimmed;
+            sync();
+            return true;
+        }
+
+        function managerTogglePendingEdit(id) {
+            pendingEditTeamId = pendingEditTeamId === id ? null : id;
+            if (mode === 'manager') renderManager();
+        }
+
+        function managerToggleVerkleed(id) {
+            const target = teams.find((t) => t.id === id);
+            if (!target || target.status !== 'pending') return;
+            target.verkleed = !target.verkleed;
+            sync();
+        }
+
+        function managerSetPendingCategory(id, category) {
+            const target = teams.find((t) => t.id === id);
+            if (!target || target.status !== 'pending') return;
+            const key = CATEGORIES[category] ? category : DEFAULT_CATEGORY;
+            target.category = key;
+            target.members = defaultMembersForCategory(key);
+            sync();
+        }
+
+        function managerTogglePendingMember(id, slotIndex) {
+            const target = teams.find((t) => t.id === id);
+            if (!target || target.status !== 'pending' || target.category === 'jeugd') return;
+            const category = CATEGORIES[target.category] ? target.category : DEFAULT_CATEGORY;
+            const members = normalizeMembers(target.members, category);
+            members[slotIndex] = members[slotIndex] === 'f' ? 'm' : 'f';
+            target.members = members;
+            target.category = categoryFromMembers(members);
             sync();
         }
 
@@ -2533,6 +2799,11 @@
                 alert('Kan geen team verwijderen dat op de baan staat. Rond af of maak ongedaan.');
                 return;
             }
+            const action = target.status === 'finished'
+                ? `"${target.name}" uit de resultaten verwijderen?`
+                : `"${target.name}" verwijderen?`;
+            if (!confirm(`Weet je het zeker?\n\n${action}`)) return;
+            if (pendingEditTeamId === id) pendingEditTeamId = null;
             teams = teams.filter((t) => t.id !== id);
             sync();
         }
@@ -2727,7 +2998,7 @@
          * @param {Team} t
          * @param {{ showCategory?: boolean, showComposition?: boolean }} [options]
          */
-        function buildTeamLabel(t, { showCategory = true, showComposition = true } = {}) {
+        function buildTeamLabel(t, { showCategory = true, showComposition = true, showVerkleed = true } = {}) {
             const label = document.createElement('div');
             label.className = 'team-label';
             if (showCategory) {
@@ -2740,19 +3011,35 @@
             nameSpan.textContent = t.name;
             label.appendChild(nameSpan);
             if (showComposition) appendMemberComposition(label, t);
-            appendVerkleedBadge(label, t);
+            if (showVerkleed) appendVerkleedBadge(label, t);
             return label;
+        }
+
+        function buildVerkleedToggleButton(team, { compact = true } = {}) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `verkleed-toggle${compact ? ' verkleed-toggle-sm' : ''}${team.verkleed ? ' active' : ''}`;
+            btn.title = `Verkleed — ${VERKLEED_BONUS_SEC}s tijdbonus`;
+            btn.setAttribute('aria-label', btn.title);
+            btn.setAttribute('aria-pressed', team.verkleed ? 'true' : 'false');
+            btn.innerHTML = verkleedIconSvg();
+            btn.onclick = () => managerToggleVerkleed(team.id);
+            return btn;
         }
 
         function buildPendingControls(t) {
             const controls = document.createElement('div');
             controls.className = 'team-controls';
+            const isEditing = pendingEditTeamId === t.id;
 
-            const rename = document.createElement('button');
-            rename.className = 'btn-rename';
-            rename.textContent = 'Hernoemen';
-            rename.onclick = () => managerRename(t.id);
-            controls.appendChild(rename);
+            if (!isEditing) {
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'btn-edit-team';
+                editBtn.textContent = 'Bewerken';
+                editBtn.onclick = () => managerTogglePendingEdit(t.id);
+                controls.appendChild(editBtn);
+            }
 
             const del = document.createElement('button');
             del.className = 'btn-del';
@@ -2763,10 +3050,98 @@
             return controls;
         }
 
+        function buildPendingEditPanel(team) {
+            const panel = document.createElement('div');
+            panel.className = 'team-item-edit-panel';
+
+            const nameField = document.createElement('div');
+            nameField.className = 'pending-edit-field';
+            const nameLabel = document.createElement('label');
+            nameLabel.className = 'pending-edit-label';
+            nameLabel.textContent = 'Teamnaam';
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'pending-edit-name';
+            nameInput.value = team.name;
+            nameInput.onblur = () => {
+                if (!managerSetPendingName(team.id, nameInput.value)) {
+                    nameInput.value = teams.find((x) => x.id === team.id)?.name ?? team.name;
+                }
+            };
+            nameInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    nameInput.blur();
+                }
+            };
+            nameField.append(nameLabel, nameInput);
+
+            const catField = document.createElement('div');
+            catField.className = 'pending-edit-field';
+            const catLabel = document.createElement('label');
+            catLabel.className = 'pending-edit-label';
+            catLabel.textContent = 'Categorie';
+            const catSelect = document.createElement('select');
+            catSelect.className = 'cat-select-sm';
+            catSelect.title = 'Categorie';
+            catSelect.setAttribute('aria-label', 'Categorie');
+            populateCategorySelect(catSelect, team.category);
+            catSelect.onchange = () => managerSetPendingCategory(team.id, catSelect.value);
+            catField.append(catLabel, catSelect);
+
+            const category = CATEGORIES[team.category] ? team.category : DEFAULT_CATEGORY;
+            const members = normalizeMembers(team.members, category);
+            const locked = category === 'jeugd';
+            const compField = document.createElement('div');
+            compField.className = 'pending-edit-field';
+            const compLabel = document.createElement('label');
+            compLabel.className = 'pending-edit-label';
+            compLabel.textContent = locked ? 'Team (jeugd)' : `Team (${members.length})`;
+            const memberRow = document.createElement('div');
+            memberRow.className = `pending-member-row${locked ? ' is-jeugd' : ''}`;
+            memberRow.setAttribute('aria-label', locked
+                ? `Teamsamenstelling — ${members.length} leden (jeugd, vast)`
+                : `Teamsamenstelling — ${members.length} leden`);
+            for (let i = 0; i < members.length; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'member-toggle';
+                btn.disabled = locked;
+                setMemberToggleState(btn, members[i], i + 1, locked);
+                if (!locked) {
+                    const slot = i;
+                    btn.onclick = () => managerTogglePendingMember(team.id, slot);
+                }
+                memberRow.appendChild(btn);
+            }
+            compField.append(compLabel, memberRow);
+
+            const verkleedField = document.createElement('div');
+            verkleedField.className = 'pending-edit-field';
+            const verkleedLabel = document.createElement('span');
+            verkleedLabel.className = 'pending-edit-label';
+            verkleedLabel.textContent = 'Verkleed';
+            verkleedField.append(verkleedLabel, buildVerkleedToggleButton(team, { compact: false }));
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.type = 'button';
+            confirmBtn.className = 'btn-pending-confirm';
+            confirmBtn.textContent = 'Bevestigen';
+            confirmBtn.onclick = () => {
+                const nameInput = panel.querySelector('.pending-edit-name');
+                if (nameInput) managerSetPendingName(team.id, nameInput.value);
+                managerTogglePendingEdit(team.id);
+            };
+
+            panel.append(nameField, catField, compField, verkleedField, confirmBtn);
+            return panel;
+        }
+
         function renderPendingRow(t, isNext) {
             const cat = CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY;
+            const isEditing = pendingEditTeamId === t.id;
             const div = document.createElement('div');
-            div.className = `team-item pending cat-${cat}${isNext ? ' next-up' : ''}`;
+            div.className = `team-item pending cat-${cat}${isNext ? ' next-up' : ''}${isEditing ? ' is-editing' : ''}`;
             div.dataset.teamId = String(t.id);
             div.title = categoryLabel(cat);
 
@@ -2777,7 +3152,15 @@
             handle.setAttribute('aria-label', 'Sleep om te herschikken');
             handle.textContent = '⠿';
 
-            div.append(handle, buildTeamLabel(t, { showCategory: false, showComposition: false }), buildPendingControls(t));
+            const main = document.createElement('div');
+            main.className = 'team-item-main';
+            main.append(
+                handle,
+                buildTeamLabel(t, { showCategory: true, showComposition: true, showVerkleed: true }),
+                buildPendingControls(t),
+            );
+            div.appendChild(main);
+            if (isEditing) div.appendChild(buildPendingEditPanel(t));
             return div;
         }
 
@@ -2940,7 +3323,7 @@
             const demeritBlock = document.getElementById('control-demerit-block');
             const demeritTeamEl = document.getElementById('control-demerit-team');
             const demeritPointsEl = document.getElementById('control-demerit-points');
-            const demeritPenaltyEl = document.getElementById('control-demerit-penalty');
+            const demeritTimeSummary = document.getElementById('control-demerit-time-summary');
             const demeritMinusBtn = document.getElementById('demerit-minus-btn');
             const demeritPlusBtn = document.getElementById('demerit-plus-btn');
             const demeritConfirmBtn = document.getElementById('demerit-confirm-btn');
@@ -3012,9 +3395,7 @@
                 const pts = reviewTeam.demeritPoints ?? 0;
                 demeritTeamEl.textContent = reviewTeam.name;
                 demeritPointsEl.textContent = `${pts} pnt`;
-                demeritPenaltyEl.textContent = reviewTeam.status === 'racing'
-                    ? 'Wordt verrekend na finish'
-                    : `+${formatTime(demeritPenaltySec(reviewTeam))} straf`;
+                renderControlDemeritTimeSummary(demeritTimeSummary, reviewTeam);
                 demeritMinusBtn.disabled = pts <= 0;
                 demeritPlusBtn.disabled = false;
                 demeritConfirmBtn?.classList.toggle('hidden', !awaitingConfirm);
@@ -3108,6 +3489,15 @@
             });
         }
 
+        /** Team name shown in the display live column title. */
+        function getDisplayLiveTitleTeam() {
+            if (raceState === 'RACING') return currentRacing();
+            if (raceState === 'COUNTDOWN') return nextPending();
+            const awaitingConfirm = unconfirmedDemeritTeam();
+            if (awaitingConfirm) return awaitingConfirm;
+            return nextPending();
+        }
+
         /** Display panel: live timer, leaderboard, countdown overlay, next up. */
         function renderDisplay() {
             const panel = document.getElementById('display-panel');
@@ -3119,10 +3509,8 @@
             const racingTeam = currentRacing();
             const nextTeam = nextPending();
             const liveTitleEl = document.getElementById('display-live-title');
-            const displayTeam = raceState === 'RACING' ? racingTeam
-                : raceState === 'COUNTDOWN' ? nextTeam
-                : undefined;
-            if (liveTitleEl) liveTitleEl.textContent = displayTeam?.name ?? '—';
+            const titleTeam = getDisplayLiveTitleTeam();
+            if (liveTitleEl) liveTitleEl.textContent = titleTeam?.name ?? '—';
 
             renderDisplayLeaderboard();
 
