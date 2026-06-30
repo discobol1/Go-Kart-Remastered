@@ -1,4 +1,4 @@
-# Go-Kart Pro
+# Go-Kart Remastered
 
 Local race timing for go-kart team time trials. One Node server syncs three browser views over your Wi‑Fi.
 

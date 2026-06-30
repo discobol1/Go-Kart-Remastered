@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Go-Kart Pro Race System</title>
+    <title>Go-Kart Remastered — Racesysteem</title>
     <style>
         :root {
             color-scheme: dark;
@@ -415,10 +415,6 @@
         .control-demerit-team {
             font-size: 0.9rem; font-weight: 800; text-transform: uppercase;
             color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .control-demerit-hint {
-            flex: 1 1 100%; margin: -8px 0 0;
-            font-size: 0.8rem; color: var(--muted-light); line-height: 1.4;
         }
         .control-demerit-stats {
             display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1;
@@ -876,26 +872,23 @@
 </head>
 <body>
 
-    <div id="connection-status" class="disconnected">Connecting…</div>
+    <div id="connection-status" class="disconnected">Verbinden…</div>
     <div id="toolbar-reveal-zone" aria-hidden="true"></div>
     <div id="panel-actions" class="panel-actions hidden">
-        <a href="/" class="panel-action-btn">⚙ Settings</a>
-        <button type="button" class="panel-action-btn sound-btn hidden" id="sound-prompt" title="Enable countdown sounds">🔊 Sound</button>
-        <button type="button" class="panel-action-btn" id="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+        <a href="/" class="panel-action-btn">⚙ Instellingen</a>
+        <button type="button" class="panel-action-btn sound-btn hidden" id="sound-prompt" title="Aftelgeluiden inschakelen">🔊 Geluid</button>
+        <button type="button" class="panel-action-btn" id="fullscreen-btn" onclick="toggleFullscreen()">⛶ Volledig scherm</button>
     </div>
 
     <div id="mode-selection">
-        <h1 style="font-size: 3rem;">Go-Kart Pro</h1>
-        <p class="mode-hint">Open each role on a separate device over your local network. The host shows the public display, a laptop manages teams, and an iPad runs timing.</p>
-        <button class="mode-btn" style="background: var(--warning); color: #000000;" onclick="setMode('manager')">Manager (Lineup)</button>
+        <h1 style="font-size: 3rem;">Go-Kart Remastered</h1>
+        <p class="mode-hint">Open elke rol op een apart apparaat via je lokale netwerk. De host toont het publieke display, een laptop beheert teams en een iPad doet de tijdwaarneming.</p>
+        <button class="mode-btn" style="background: var(--warning); color: #000000;" onclick="setMode('manager')">Beheer (Line-up)</button>
         <button class="mode-btn" style="background: var(--success); color: white;" onclick="setMode('control')">Official (Timing)</button>
-        <button class="mode-btn" style="background: var(--muted-dim); color: white;" onclick="setMode('display')">Display (Public)</button>
-        <div class="mode-data-actions">
-            <button class="btn-data" onclick="backupRaceData()">Backup Race Data</button>
-            <button class="btn-data" onclick="document.getElementById('backup-file-input').click()">Load Race Data</button>
-            <input type="file" id="backup-file-input" accept=".json,application/json" onchange="loadRaceDataFromFile(this)">
-            <button class="btn-reset" onclick="managerReset()">Reset All Data</button>
-        </div>
+        <button class="mode-btn" style="background: var(--muted-dim); color: white;" onclick="setMode('display')">Display (Publiek)</button>
+        <p class="mode-hint" style="margin-top: 32px; font-size: 0.9rem; opacity: 0.85;">
+            Back-up, herstel en verwijderen van racedata staan op de <a href="/" style="color: var(--warning);">Setup</a>-pagina (code vereist).
+        </p>
     </div>
 
     <div id="manager-panel" class="hidden">
@@ -904,19 +897,19 @@
         </div>
         <div class="manager-columns">
             <section class="manager-col manager-col-pending">
-                <h3 class="col-title">Pending</h3>
+                <h3 class="col-title">Wachtrij</h3>
                 <div id="on-track-wrap" class="on-track-wrap hidden">
-                    <div class="col-subtitle">On Track</div>
+                    <div class="col-subtitle">Op de baan</div>
                     <div id="list-racing"></div>
                 </div>
-                <div class="col-subtitle queue">Queue</div>
+                <div class="col-subtitle queue">Rij</div>
                 <div id="list-pending" class="manager-col-list"></div>
             </section>
             <section class="manager-col manager-col-finished">
-                <h3 class="col-title">Finished — Results</h3>
+                <h3 class="col-title">Gefinisht — Resultaten</h3>
                 <div class="control-sort-bar">
-                    <button type="button" id="manager-sort-recent" class="sort-btn active" onclick="setManagerResultsSort('recent')">Last Races</button>
-                    <button type="button" id="manager-sort-best" class="sort-btn" onclick="setManagerResultsSort('best')">Best Times</button>
+                    <button type="button" id="manager-sort-recent" class="sort-btn active" onclick="setManagerResultsSort('recent')">Laatste runs</button>
+                    <button type="button" id="manager-sort-best" class="sort-btn" onclick="setManagerResultsSort('best')">Beste tijden</button>
                 </div>
                 <div id="list-finished" class="manager-col-list"></div>
             </section>
@@ -924,29 +917,29 @@
         <footer class="manager-bar">
             <div class="add-form">
                 <div class="add-field grow">
-                    <label for="mName">Team Name</label>
-                    <input type="text" id="mName" placeholder="e.g. Team Red" onkeydown="if(event.key==='Enter')managerAdd()">
+                    <label for="mName">Teamnaam</label>
+                    <input type="text" id="mName" placeholder="bv. Team Rood" onkeydown="if(event.key==='Enter')managerAdd()">
                 </div>
                 <div class="add-field add-field-check">
                     <label for="mVerkleed">Verkleed</label>
                     <button type="button" id="mVerkleed" class="verkleed-toggle"
-                        aria-pressed="false" title="Verkleed — 10 second time bonus"
-                        aria-label="Verkleed — 10 second time bonus"
+                        aria-pressed="false" title="Verkleed — 10 seconden tijdbonus"
+                        aria-label="Verkleed — 10 seconden tijdbonus"
                         onclick="toggleVerkleedAdd()">
                         <span id="mVerkleed-icon" aria-hidden="true"></span>
                     </button>
                 </div>
                 <div class="add-field add-field-category">
-                    <label for="mCategory">Category</label>
-                    <select id="mCategory" title="Category" onchange="onAddCategoryChange()"></select>
+                    <label for="mCategory">Categorie</label>
+                    <select id="mCategory" title="Categorie" onchange="onAddCategoryChange()"></select>
                 </div>
                 <div id="mCompositionField" class="add-field add-field-composition">
                     <label id="mMembersLabel">Team (4)</label>
-                    <div id="mMembers" class="member-row" role="group" aria-label="Team composition"></div>
+                    <div id="mMembers" class="member-row" role="group" aria-label="Teamsamenstelling"></div>
                 </div>
                 <div class="add-field add-field-action">
-                    <label class="add-label-spacer" aria-hidden="true">Add</label>
-                    <button type="button" class="btn-add btn-add-bar" onclick="managerAdd()">Add Team</button>
+                    <label class="add-label-spacer" aria-hidden="true">Toevoegen</label>
+                    <button type="button" class="btn-add btn-add-bar" onclick="managerAdd()">Team toevoegen</button>
                 </div>
             </div>
         </footer>
@@ -958,37 +951,36 @@
         </div>
         <div class="control-columns">
             <section class="control-col control-col-past">
-                <h3 class="col-title">Past Races</h3>
+                <h3 class="col-title">Vorige runs</h3>
                 <div class="control-sort-bar">
-                    <button type="button" id="sort-recent" class="sort-btn active" onclick="setControlResultsSort('recent')">Last Races</button>
-                    <button type="button" id="sort-best" class="sort-btn" onclick="setControlResultsSort('best')">Best Times</button>
+                    <button type="button" id="sort-recent" class="sort-btn active" onclick="setControlResultsSort('recent')">Laatste runs</button>
+                    <button type="button" id="sort-best" class="sort-btn" onclick="setControlResultsSort('best')">Beste tijden</button>
                 </div>
                 <div id="control-list-finished" class="control-col-list"></div>
             </section>
             <section class="control-col control-col-pending">
-                <h3 class="col-title">Pending</h3>
+                <h3 class="col-title">Wachtrij</h3>
                 <div id="control-list-pending" class="control-col-list"></div>
             </section>
         </div>
         <section id="control-demerit-block" class="control-demerit hidden" aria-live="polite">
             <div class="control-demerit-head">
-                <h3 class="control-demerit-title">Task Demerits</h3>
+                <h3 class="control-demerit-title">Taakstraffen</h3>
                 <span id="control-demerit-team" class="control-demerit-team"></span>
             </div>
-            <p id="control-demerit-hint" class="control-demerit-hint"></p>
             <div class="control-demerit-stats">
-                <span id="control-demerit-points" class="control-demerit-points">0 pts</span>
-                <span id="control-demerit-penalty" class="control-demerit-penalty">+00:00.000 penalty</span>
+                <span id="control-demerit-points" class="control-demerit-points">0 pnt</span>
+                <span id="control-demerit-penalty" class="control-demerit-penalty">+00:00.000 straf</span>
             </div>
             <div class="control-demerit-actions">
-                <button type="button" id="demerit-minus-btn" class="btn-demerit" onclick="controlDemerit(-1)" title="Remove demerit point" aria-label="Remove demerit point">−</button>
-                <button type="button" id="demerit-plus-btn" class="btn-demerit btn-demerit-add" onclick="controlDemerit(1)" title="Add demerit point" aria-label="Add demerit point">+</button>
+                <button type="button" id="demerit-minus-btn" class="btn-demerit" onclick="controlDemerit(-1)" title="Strafpunt verwijderen" aria-label="Strafpunt verwijderen">−</button>
+                <button type="button" id="demerit-plus-btn" class="btn-demerit btn-demerit-add" onclick="controlDemerit(1)" title="Strafpunt toevoegen" aria-label="Strafpunt toevoegen">+</button>
             </div>
-            <button type="button" id="demerit-confirm-btn" class="btn-demerit-confirm hidden" onclick="controlConfirmDemerits()">Confirm with referees</button>
+            <button type="button" id="demerit-confirm-btn" class="btn-demerit-confirm hidden" onclick="controlConfirmDemerits()">Bevestig met jury</button>
         </section>
         <footer class="control-bar state-idle">
             <div id="control-live">
-                <div class="control-live-now">NOW:</div>
+                <div class="control-live-now">NU:</div>
                 <div class="control-live-main">
                     <div class="team-line">
                         <div id="control-live-cat"></div>
@@ -1006,7 +998,7 @@
             </div>
             <div class="control-bar-actions">
                 <button id="startBtn" class="btn-start btn-action" onclick="controlStart()">START</button>
-                <button id="stopBtn" class="btn-stop btn-action hidden" onclick="controlStop()">FINISH</button>
+                <button id="stopBtn" class="btn-stop btn-action hidden" onclick="controlStop()">AFRONDEN</button>
                 <button id="undoBtn" class="btn-undo btn-action" onclick="controlUndo()" disabled>↩ UNDO</button>
             </div>
         </footer>
@@ -1018,10 +1010,10 @@
         </div>
         <div class="display-columns">
             <section class="display-col">
-                <h3 class="col-title">Current Run</h3>
+                <h3 class="col-title">Huidige run</h3>
                 <div id="display-live">
                     <div class="display-live-center">
-                        <div id="display-status-pill" class="idle">Ready</div>
+                        <div id="display-status-pill" class="idle">Klaar</div>
                         <div class="team-line">
                             <div id="display-live-cat"></div>
                             <div id="display-live-name">—</div>
@@ -1031,20 +1023,20 @@
                 </div>
             </section>
             <section class="display-col">
-                <h3 class="col-title">Leaderboard</h3>
+                <h3 class="col-title">Klassement</h3>
                 <div id="display-leaderboard-list" class="display-col-list"></div>
             </section>
         </div>
         <section id="display-next-up" class="display-next-block hidden">
             <div class="display-next-row">
-                <div class="display-next-label">Next Up</div>
+                <div class="display-next-label">Volgende</div>
                 <div class="team-line">
                     <div id="display-next-up-cat"></div>
                     <div id="display-next-up-name"></div>
                 </div>
             </div>
             <div id="display-next-after" class="display-next-row display-next-row--after hidden">
-                <div class="display-next-label">Then</div>
+                <div class="display-next-label">Daarna</div>
                 <div class="team-line">
                     <div id="display-next-after-cat"></div>
                     <div id="display-next-after-name"></div>
@@ -1058,7 +1050,7 @@
                     <div id="countdown-team-name"></div>
                 </div>
             </div>
-            <div id="countdown-f1-lights" class="f1-light-panel" aria-label="Race start lights">
+            <div id="countdown-f1-lights" class="f1-light-panel" aria-label="Startlichten">
                 <div class="f1-light"></div>
                 <div class="f1-light"></div>
                 <div class="f1-light"></div>
@@ -1071,7 +1063,7 @@
 
     <script>
         /* =============================================================================
-         * GO-KART PRO — race.html (single-file app)
+         * GO-KART REMASTERED — race.html (single-file app)
          * =============================================================================
          *
          * QUICK START
@@ -1431,16 +1423,16 @@
             if (isJeugd) {
                 btn.classList.add('jeugd');
                 btn.innerHTML = jeugdMemberIconSvg();
-                btn.title = `Jeugd member ${slotNum}`;
+                btn.title = `Jeugdlid ${slotNum}`;
                 btn.setAttribute('aria-label', btn.title);
                 return;
             }
             btn.classList.toggle('male', gender === 'm');
             btn.classList.toggle('female', gender === 'f');
             btn.innerHTML = memberIconSvg(gender);
-            const label = gender === 'f' ? 'female' : 'male';
-            const other = gender === 'f' ? 'male' : 'female';
-            btn.title = `Member ${slotNum} — ${label} (click for ${other})`;
+            const label = gender === 'f' ? 'vrouw' : 'man';
+            const other = gender === 'f' ? 'man' : 'vrouw';
+            btn.title = `Lid ${slotNum} — ${label} (klik voor ${other})`;
             btn.setAttribute('aria-label', btn.title);
         }
 
@@ -1453,11 +1445,11 @@
             wrap.className = `member-composition${isJeugd ? ' is-jeugd' : ''}`;
             const total = members.length;
             if (isJeugd) {
-                wrap.title = `${women} woman${women === 1 ? '' : 'en'}, ${total - women} man${total - women === 1 ? '' : 'en'} (jeugd — no woman bonus)`;
+                wrap.title = `${women} vrouw${women === 1 ? '' : 'en'}, ${total - women} man${total - women === 1 ? '' : 'nen'} (jeugd — geen vrouwenbonus)`;
             } else {
                 wrap.title = women
-                    ? `${women} woman${women === 1 ? '' : 'en'} (−${women * WOMAN_BONUS_SEC}s)`
-                    : `${total} men (no woman bonus)`;
+                    ? `${women} vrouw${women === 1 ? '' : 'en'} (−${women * WOMAN_BONUS_SEC}s)`
+                    : `${total} mannen (geen vrouwenbonus)`;
             }
             wrap.setAttribute('aria-label', wrap.title);
             members.forEach((g) => {
@@ -1616,7 +1608,7 @@
             if (!el) return;
             el.classList.toggle('connected', wsConnected);
             el.classList.toggle('disconnected', !wsConnected);
-            el.textContent = wsConnected ? 'Connected' : 'Reconnecting…';
+            el.textContent = wsConnected ? 'Verbonden' : 'Opnieuw verbinden…';
             const hideWhenOk = mode === 'display' || mode === 'control' || mode === 'manager';
             el.classList.toggle('hidden-status', hideWhenOk && wsConnected);
         }
@@ -1723,7 +1715,7 @@
         function updateFullscreenButton() {
             const btn = document.getElementById('fullscreen-btn');
             if (!btn) return;
-            btn.textContent = isFullscreen() ? '⛶ Exit fullscreen' : '⛶ Fullscreen';
+            btn.textContent = isFullscreen() ? '⛶ Volledig scherm sluiten' : '⛶ Volledig scherm';
         }
 
         function toggleFullscreen() {
@@ -1864,7 +1856,7 @@
             try {
                 applySession(JSON.parse(saved));
             } catch {
-                console.warn('Go-Kart Pro: corrupt session data in localStorage');
+                console.warn('Go-Kart Remastered: corrupt session data in localStorage');
             }
         }
 
@@ -1889,7 +1881,7 @@
             const session = readStoredSession();
             const payload = {
                 version: BACKUP_VERSION,
-                app: 'Go-Kart Pro',
+                app: 'Go-Kart Remastered',
                 exportedAt: new Date().toISOString(),
                 session,
             };
@@ -1905,17 +1897,17 @@
         function validateBackupSession(raw) {
             const session = raw.session ?? raw;
             const teamList = session.teams ?? session.drivers;
-            if (!Array.isArray(teamList)) throw new Error('Backup file is missing a teams list.');
+            if (!Array.isArray(teamList)) throw new Error('Back-upbestand mist een teamlijst.');
 
             const validStates = ['IDLE', 'COUNTDOWN', 'RACING'];
-            if (!validStates.includes(session.raceState)) throw new Error('Backup has an invalid race state.');
+            if (!validStates.includes(session.raceState)) throw new Error('Back-up heeft een ongeldige racestatus.');
 
             teamList.forEach((t, i) => {
                 if (!t || typeof t.name !== 'string' || !t.name.trim()) {
-                    throw new Error(`Team ${i + 1} is missing a name.`);
+                    throw new Error(`Team ${i + 1} heeft geen naam.`);
                 }
                 if (!['pending', 'racing', 'finished'].includes(t.status)) {
-                    throw new Error(`Team "${t.name}" has an invalid status.`);
+                    throw new Error(`Team "${t.name}" heeft een ongeldige status.`);
                 }
             });
 
@@ -1979,11 +1971,11 @@
 
                     const teamCount = session.teams.length;
                     const finishedCount = session.teams.filter((t) => t.status === 'finished').length;
-                    const summary = `${teamCount} team(s), ${finishedCount} finished time(s).`;
+                    const summary = `${teamCount} team(s), ${finishedCount} gefinisht.`;
                     const hasExisting = teams.length > 0 || localStorage.getItem(STORAGE_KEY);
                     const ok = hasExisting
-                        ? confirm(`Replace current race data?\n\n${summary}`)
-                        : confirm(`Load race data?\n\n${summary}`);
+                        ? confirm(`Alle huidige racedata vervangen?\n\n${summary}`)
+                        : confirm(`Racedata laden?\n\n${summary}`);
                     if (!ok) return;
 
                     clearCountdownTimer();
@@ -1995,12 +1987,12 @@
                         ws.send(JSON.stringify({ type: 'load', session }));
                     }
                     renderUI();
-                    alert(`Race data loaded.\n\n${summary}`);
+                    alert(`Racedata geladen.\n\n${summary}`);
                 } catch (err) {
-                    alert(`Could not load backup:\n${err.message || err}`);
+                    alert(`Back-up kon niet worden geladen:\n${err.message || err}`);
                 }
             };
-            reader.onerror = () => alert('Could not read the selected file.');
+            reader.onerror = () => alert('Het geselecteerde bestand kon niet worden gelezen.');
             reader.readAsText(file);
         }
 
@@ -2049,8 +2041,8 @@
             if (btn) {
                 btn.disabled = !undoSnapshot;
                 btn.title = undoSnapshot
-                    ? 'Restore state before last Start, GO, or Stop'
-                    : 'Nothing to undo';
+                    ? 'Herstel status vóór laatste Start, GO of Afronden'
+                    : 'Niets om ongedaan te maken';
             }
         }
 
@@ -2106,8 +2098,8 @@
             if (!prompt) return;
             prompt.classList.toggle('hidden', mode !== 'display');
             prompt.classList.toggle('active', soundEnabled);
-            prompt.textContent = soundEnabled ? '🔊 Sound on' : '🔊 Sound';
-            prompt.title = soundEnabled ? 'Sound enabled' : 'Enable countdown sounds';
+            prompt.textContent = soundEnabled ? '🔊 Geluid aan' : '🔊 Geluid';
+            prompt.title = soundEnabled ? 'Geluid ingeschakeld' : 'Aftelgeluiden inschakelen';
         }
 
         function enableSound() {
@@ -2330,8 +2322,8 @@
             row?.classList.toggle('is-jeugd', isJeugd);
             if (row) {
                 row.setAttribute('aria-label', isJeugd
-                    ? `Team composition — ${n} members (jeugd, locked)`
-                    : `Team composition — ${n} members`);
+                    ? `Teamsamenstelling — ${n} leden (jeugd, vast)`
+                    : `Teamsamenstelling — ${n} leden`);
             }
         }
 
@@ -2536,10 +2528,10 @@
         function managerRename(id) {
             const target = teams.find((t) => t.id === id);
             if (!target) return;
-            const name = prompt('New team name:', target.name);
+            const name = prompt('Nieuwe teamnaam:', target.name);
             if (name == null) return;
             const trimmed = name.trim();
-            if (!trimmed) return alert('Team name cannot be empty.');
+            if (!trimmed) return alert('Teamnaam mag niet leeg zijn.');
             target.name = trimmed;
             sync();
         }
@@ -2548,7 +2540,7 @@
             const target = teams.find((t) => t.id === id);
             if (!target) return;
             if (target.status === 'racing') {
-                alert('Cannot remove a team that is currently on track. Stop or undo first.');
+                alert('Kan geen team verwijderen dat op de baan staat. Rond af of maak ongedaan.');
                 return;
             }
             teams = teams.filter((t) => t.id !== id);
@@ -2556,7 +2548,7 @@
         }
 
         function managerReset() {
-            if (confirm('Delete everything? This clears all teams and times.')) {
+            if (confirm('Alles verwijderen? Dit wist alle teams en tijden.')) {
                 localStorage.removeItem(STORAGE_KEY);
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({ type: 'reset' }));
@@ -2627,10 +2619,10 @@
         function controlStart() {
             if (raceState !== 'IDLE') return;
             if (unconfirmedDemeritTeam()) {
-                return alert('Confirm task demerits with referees before starting the next run.');
+                return alert('Bevestig eerst de taakstraffen met de jury voordat je de volgende run start.');
             }
             const next = nextPending();
-            if (!next) return alert('No pending teams left!');
+            if (!next) return alert('Geen teams meer in de wachtrij!');
 
             pushUndo();
             clearCountdownTimer();
@@ -2704,13 +2696,13 @@
         function controlEditDemerits(id) {
             if (mode !== 'control') return;
             if (raceState === 'RACING' || raceState === 'COUNTDOWN') {
-                return alert('Cannot edit points while a run is in progress.');
+                return alert('Punten aanpassen niet mogelijk tijdens een run.');
             }
             const team = teams.find((t) => t.id === id);
             if (!team || team.status !== 'finished') return;
             const active = demeritReviewTeam();
             if (active?.status === 'finished' && !active.demeritsConfirmed && active.id !== id) {
-                return alert(`Confirm demerits for "${active.name}" before editing another team.`);
+                return alert(`Bevestig eerst de straffen voor "${active.name}" voordat je een ander team bewerkt.`);
             }
             team.demeritsConfirmed = false;
             demeritEditTeamId = id;
@@ -2768,7 +2760,7 @@
 
             const rename = document.createElement('button');
             rename.className = 'btn-rename';
-            rename.textContent = 'Rename';
+            rename.textContent = 'Hernoemen';
             rename.onclick = () => managerRename(t.id);
             controls.appendChild(rename);
 
@@ -2791,8 +2783,8 @@
             const handle = document.createElement('span');
             handle.className = 'drag-handle';
             handle.draggable = true;
-            handle.title = 'Drag to reorder';
-            handle.setAttribute('aria-label', 'Drag to reorder');
+            handle.title = 'Sleep om te herschikken';
+            handle.setAttribute('aria-label', 'Sleep om te herschikken');
             handle.textContent = '⠿';
 
             div.append(handle, buildTeamLabel(t, { showCategory: false, showComposition: false }), buildPendingControls(t));
@@ -2817,21 +2809,21 @@
             }
             const wrap = document.createElement('div');
             wrap.className = 'control-result-times';
-            wrap.title = 'Raw time → demerits → official time';
+            wrap.title = 'Ruwe tijd → straffen → officiële tijd';
 
             const raw = document.createElement('span');
             raw.className = 'control-result-time control-result-time--raw';
-            raw.title = 'Time without demerit';
+            raw.title = 'Tijd zonder straf';
             raw.textContent = formatTime(officialTimeWithoutDemerit(team));
 
             const badge = document.createElement('span');
             badge.className = 'demerit-badge';
-            badge.title = `+${formatTime(demeritPenaltySec(team))} penalty`;
-            badge.textContent = `+${pts} pt`;
+            badge.title = `+${formatTime(demeritPenaltySec(team))} straf`;
+            badge.textContent = `+${pts} pnt`;
 
             const final = document.createElement('span');
             final.className = 'control-result-time control-result-time--final';
-            final.title = 'Official time with demerit';
+            final.title = 'Officiële tijd met straf';
             final.textContent = formatTime(team.totalTime);
 
             wrap.append(raw, badge, final);
@@ -2856,7 +2848,7 @@
             const del = document.createElement('button');
             del.className = 'btn-del';
             del.textContent = '✕';
-            del.title = 'Remove from results';
+            del.title = 'Uit resultaten verwijderen';
             del.onclick = () => managerDel(t.id);
             actions.appendChild(del);
 
@@ -2883,13 +2875,13 @@
             onTrackWrap.classList.toggle('hidden', racing.length === 0);
             racing.forEach((t) => listRacing.appendChild(renderRacingRow(t)));
 
-            if (pending.length === 0) renderEmpty(listPending, 'No teams in queue');
+            if (pending.length === 0) renderEmpty(listPending, 'Geen teams in wachtrij');
             else {
                 listPending.replaceChildren();
                 pending.forEach((t, i) => listPending.appendChild(renderPendingRow(t, i === 0)));
             }
 
-            if (finished.length === 0) renderEmpty(listFinished, 'No results yet');
+            if (finished.length === 0) renderEmpty(listFinished, 'Nog geen resultaten');
             else {
                 listFinished.replaceChildren();
                 finished.forEach((t, i) => {
@@ -2928,11 +2920,11 @@
                 const edit = document.createElement('button');
                 edit.type = 'button';
                 edit.className = 'btn-edit-points';
-                edit.textContent = isActiveEdit ? 'Editing…' : 'Edit points';
+                edit.textContent = isActiveEdit ? 'Bewerken…' : 'Punten bewerken';
                 edit.disabled = isActiveEdit;
                 edit.title = isActiveEdit
-                    ? 'Demerits open in panel below'
-                    : 'Adjust task demerit points for this run';
+                    ? 'Straffen open in paneel hieronder'
+                    : 'Taakstrafpunten voor deze run aanpassen';
                 edit.onclick = () => controlEditDemerits(t.id);
                 actions.appendChild(edit);
             }
@@ -2957,7 +2949,6 @@
             const listFinished = document.getElementById('control-list-finished');
             const demeritBlock = document.getElementById('control-demerit-block');
             const demeritTeamEl = document.getElementById('control-demerit-team');
-            const demeritHintEl = document.getElementById('control-demerit-hint');
             const demeritPointsEl = document.getElementById('control-demerit-points');
             const demeritPenaltyEl = document.getElementById('control-demerit-penalty');
             const demeritMinusBtn = document.getElementById('demerit-minus-btn');
@@ -2972,7 +2963,7 @@
                 controlResultsSort,
             );
 
-            if (pending.length === 0) renderEmpty(listPending, 'No teams waiting');
+            if (pending.length === 0) renderEmpty(listPending, 'Geen teams aan het wachten');
             else {
                 listPending.replaceChildren();
                 pending.forEach((t, i) => listPending.appendChild(renderControlQueueRow(t, i === 0)));
@@ -3030,17 +3021,14 @@
             if (reviewTeam) {
                 const pts = reviewTeam.demeritPoints ?? 0;
                 demeritTeamEl.textContent = reviewTeam.name;
-                demeritHintEl.textContent = awaitingConfirm
-                    ? 'Review points with referees — adjust if needed, then confirm.'
-                    : 'Award points during the run — confirm with referees after finish.';
-                demeritPointsEl.textContent = `${pts} pt${pts === 1 ? '' : 's'}`;
-                demeritPenaltyEl.textContent = `+${formatTime(demeritPenaltySec(reviewTeam))} penalty`;
+                demeritPointsEl.textContent = `${pts} pnt`;
+                demeritPenaltyEl.textContent = `+${formatTime(demeritPenaltySec(reviewTeam))} straf`;
                 demeritMinusBtn.disabled = pts <= 0;
                 demeritPlusBtn.disabled = false;
                 demeritConfirmBtn?.classList.toggle('hidden', !awaitingConfirm);
             }
 
-            if (finished.length === 0) renderEmpty(listFinished, 'No races yet');
+            if (finished.length === 0) renderEmpty(listFinished, 'Nog geen runs');
             else {
                 listFinished.replaceChildren();
                 finished.forEach((t, i) => {
@@ -3119,7 +3107,7 @@
             );
 
             if (finished.length === 0) {
-                renderEmpty(list, 'No times yet');
+                renderEmpty(list, 'Nog geen tijden');
                 return;
             }
             list.replaceChildren();
@@ -3166,7 +3154,7 @@
             overlay.classList.remove('visible', 'go');
 
             if (raceState === 'RACING' && raceStartTime) {
-                statusPill.textContent = 'On Track';
+                statusPill.textContent = 'Op de baan';
                 statusPill.className = 'racing';
                 renderCategoryBadge(document.getElementById('display-live-cat'), racingTeam);
                 liveNameEl.textContent = racingTeam ? racingTeam.name : '—';
@@ -3176,7 +3164,7 @@
                 );
                 timerEl.className = racingTeam && (racingTeam.demeritPoints ?? 0) > 0 ? 'live warn' : 'live';
             } else {
-                statusPill.textContent = 'Ready';
+                statusPill.textContent = 'Klaar';
                 statusPill.className = 'idle';
                 timerEl.textContent = '00:00.000';
                 timerEl.className = 'dim';

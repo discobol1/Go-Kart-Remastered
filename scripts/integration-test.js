@@ -112,7 +112,7 @@ function restoreSession(backup) {
 }
 
 async function runTests() {
-  console.log('\nGo-Kart Pro — integration tests\n');
+  console.log('\nGo-Kart Remastered — integration tests\n');
 
   // HTTP
   const home = await httpGet(`http://127.0.0.1:${PORT}/`);

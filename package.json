@@ -1,8 +1,8 @@
 {
-  "name": "go-kart-pro",
+  "name": "go-kart-remastered",
   "version": "1.0.0",
   "private": true,
-  "description": "Local race server for Go-Kart Pro timing system",
+  "description": "Local race server for Go-Kart Remastered timing system",
   "scripts": {
     "start": "node server.js",
     "start:host": "node scripts/start-host.js",

@@ -346,7 +346,7 @@ setInterval(tickCountdown, 50);
 
 server.listen(PORT, '0.0.0.0', () => {
   const addrs = lanAddresses();
-  console.log('\n  Go-Kart Pro — race server running\n');
+  console.log('\n  Go-Kart Remastered — race server running\n');
   console.log(`  Setup:            http://localhost:${PORT}/`);
   console.log(`  Host display:     http://localhost:${PORT}/display`);
   console.log(`  Race manager:     http://localhost:${PORT}/manager`);

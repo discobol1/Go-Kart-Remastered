@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Go-Kart Pro — Setup</title>
+    <title>Go-Kart Remastered — Setup</title>
     <style>
         :root {
             color-scheme: dark;
@@ -59,21 +59,14 @@
             font-size: clamp(0.9rem, 2.5vw, 1rem);
             text-align: center;
         }
-        .steps {
-            display: grid; gap: var(--gap);
-            margin-bottom: clamp(20px, 4vw, 36px);
-            padding: var(--card-pad);
-            background: var(--card); border: 1px solid var(--card-outline);
-            box-shadow: 0 0 24px var(--neon-glow);
-        }
-        .steps h2 {
-            margin: 0 0 8px; font-size: 0.8rem; text-transform: uppercase;
-            letter-spacing: 2px; color: var(--muted-dim); text-align: center;
-        }
-        .steps ol {
-            margin: 0; padding-left: 1.25rem;
-            color: var(--muted-light); line-height: 1.7;
-            font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+        .lead::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 1px;
+            margin: clamp(14px, 3vw, 22px) auto 0;
+            background: var(--card-outline);
+            box-shadow: 0 0 14px var(--neon-glow);
         }
         .device-grid {
             display: grid;
@@ -212,6 +205,37 @@
             margin-top: 12px; font-size: 0.85rem; color: var(--muted-dim);
         }
         .settings-status.saved { color: var(--success); }
+        .settings-card--danger {
+            border-color: var(--accent);
+            box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 28%, transparent);
+        }
+        .settings-card--danger h2 { color: var(--accent); }
+        .settings-warning {
+            margin: 0 0 16px; padding: 12px 14px;
+            background: var(--accent-tint-soft, color-mix(in srgb, var(--accent) 10%, transparent));
+            border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+            color: var(--muted-light); font-size: 0.85rem; line-height: 1.55;
+        }
+        .settings-warning strong { color: var(--accent); }
+        .settings-actions {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;
+        }
+        .btn-data {
+            background: var(--surface); color: var(--text-secondary);
+            border: 1px solid var(--border-strong);
+        }
+        .btn-data:hover { border-color: var(--warning); color: var(--text); }
+        .btn-danger {
+            background: color-mix(in srgb, var(--accent) 12%, transparent);
+            color: var(--accent); border-color: var(--accent);
+        }
+        .btn-danger:hover {
+            background: var(--accent); color: #000;
+        }
+        #backup-file-input { display: none; }
+        .toast.error {
+            border-color: var(--accent); color: var(--accent);
+        }
         .toast {
             position: fixed;
             bottom: max(16px, env(safe-area-inset-bottom));
@@ -237,105 +261,372 @@
 <body>
     <div class="wrap">
         <header>
-            <h1>Go-Kart Pro</h1>
+            <h1>Go-Kart Remastered</h1>
             <p class="lead">
-                Run the server on the host PC. Open each role on the right device — all screens stay in sync over your local Wi‑Fi.
+                Start de server op de host-pc. Open elke rol op het juiste apparaat — alle schermen blijven gesynchroniseerd via je lokale Wi‑Fi.
             </p>
         </header>
-
-        <section class="steps">
-            <h2>Event day setup</h2>
-            <ol>
-                <li>On the <strong>host PC</strong> (projector/TV): open <strong>Public Display</strong></li>
-                <li>On a <strong>laptop</strong>: open <strong>Race Manager</strong> to add teams</li>
-                <li>On an <strong>iPad</strong>: open <strong>Race Official</strong> to start &amp; finish runs</li>
-            </ol>
-        </section>
 
         <div class="device-grid">
             <article class="device-card" data-role="display">
                 <div class="device-head">
                     <div class="icon display">📺</div>
                     <div>
-                        <strong>Public Display</strong>
-                        <span>Host PC / projector — leaderboard &amp; live timer</span>
+                        <strong>Publiek display</strong>
+                        <span>Host-pc / beamer — klassement &amp; live timer</span>
                     </div>
                 </div>
                 <div class="url-row">
-                    <code class="url-text">Loading…</code>
-                    <button type="button" class="btn copy-btn" data-role="display">Copy</button>
+                    <code class="url-text">Laden…</code>
+                    <button type="button" class="btn copy-btn" data-role="display">Kopiëren</button>
                 </div>
-                <a class="btn open primary" href="/display">Open Display</a>
+                <a class="btn open primary" href="/display">Display openen</a>
             </article>
 
             <article class="device-card" data-role="manager">
                 <div class="device-head">
                     <div class="icon manager">💻</div>
                     <div>
-                        <strong>Race Manager</strong>
-                        <span>Laptop — add teams &amp; manage the queue</span>
+                        <strong>Racebeheer</strong>
+                        <span>Laptop — teams toevoegen &amp; wachtrij beheren</span>
                     </div>
                 </div>
-                <div class="qr-wrap"><span class="qr-placeholder">QR loading…</span></div>
+                <div class="qr-wrap"><span class="qr-placeholder">QR laden…</span></div>
                 <div class="url-row">
-                    <code class="url-text">Loading…</code>
-                    <button type="button" class="btn copy-btn" data-role="manager">Copy</button>
+                    <code class="url-text">Laden…</code>
+                    <button type="button" class="btn copy-btn" data-role="manager">Kopiëren</button>
                 </div>
-                <a class="btn open" href="/manager">Open Manager (this PC)</a>
+                <a class="btn open" href="/manager">Beheer openen (deze pc)</a>
             </article>
 
             <article class="device-card" data-role="control">
                 <div class="device-head">
                     <div class="icon control">📱</div>
                     <div>
-                        <strong>Race Official</strong>
-                        <span>iPad — start, finish &amp; undo races</span>
+                        <strong>Race-official</strong>
+                        <span>iPad — starten, afronden &amp; ongedaan maken</span>
                     </div>
                 </div>
-                <div class="qr-wrap"><span class="qr-placeholder">QR loading…</span></div>
+                <div class="qr-wrap"><span class="qr-placeholder">QR laden…</span></div>
                 <div class="url-row">
-                    <code class="url-text">Loading…</code>
-                    <button type="button" class="btn copy-btn" data-role="control">Copy</button>
+                    <code class="url-text">Laden…</code>
+                    <button type="button" class="btn copy-btn" data-role="control">Kopiëren</button>
                 </div>
-                <a class="btn open primary" href="/control">Open Official (this PC)</a>
+                <a class="btn open primary" href="/control">Official openen (deze pc)</a>
             </article>
         </div>
 
         <p class="network-note" id="network-note">
-            <strong>Tip:</strong> Laptop and iPad must use the network URL above (not <code>localhost</code>).
-            All devices need to be on the same Wi‑Fi as this host.
+            <strong>Tip:</strong> Laptop en iPad moeten de netwerk-url hierboven gebruiken (niet <code>localhost</code>).
+            Alle apparaten moeten op hetzelfde Wi‑Fi zitten als deze host.
         </p>
 
         <section class="settings-card" id="race-settings">
-            <h2>Race settings</h2>
+            <h2>Race-instellingen</h2>
             <p>
-                Task demerits add penalty time to a team’s official result.
-                Officials award points during a run on the iPad; each point adds the seconds below.
+                Taakstraffen voegen boetetijd toe aan de officiële tijd van een team.
+                Officials geven punten tijdens een run op de iPad; elk punt telt de seconden hieronder.
             </p>
             <div class="settings-row">
                 <div class="settings-field">
-                    <label for="demerit-seconds">Seconds per demerit point</label>
+                    <label for="demerit-seconds">Seconden per strafpunt</label>
                     <input type="number" id="demerit-seconds" min="0" max="3600" step="1" value="5">
                 </div>
-                <button type="button" class="btn" id="demerit-save-btn">Save</button>
+                <button type="button" class="btn" id="demerit-save-btn">Opslaan</button>
             </div>
-            <p class="settings-status" id="settings-status">Connecting to server…</p>
+            <p class="settings-status" id="settings-status">Verbinden met server…</p>
+        </section>
+
+        <section class="settings-card settings-card--danger" id="race-data-settings">
+            <h2>Racedata</h2>
+            <p class="settings-warning">
+                <strong>Beschermde acties.</strong> Back-up, herstel en verwijderen gelden voor elk verbonden scherm.
+                Een code is vereist. Herstel of verwijder niet tijdens een actieve aftelling of run.
+            </p>
+            <div class="settings-row">
+                <div class="settings-field" style="max-width: 200px;">
+                    <label for="admin-passcode">Organisatorcode</label>
+                    <input type="password" id="admin-passcode" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••">
+                </div>
+            </div>
+            <div class="settings-actions">
+                <button type="button" class="btn btn-data" id="backup-data-btn">Racedata back-uppen</button>
+                <button type="button" class="btn btn-data" id="restore-data-btn">Herstellen uit bestand</button>
+                <button type="button" class="btn btn-danger" id="delete-data-btn">Alle racedata verwijderen</button>
+            </div>
+            <input type="file" id="backup-file-input" accept=".json,application/json">
+            <p class="settings-status" id="data-status"></p>
         </section>
     </div>
 
-    <div class="toast" id="toast">Copied!</div>
+    <div class="toast" id="toast">Gekopieerd!</div>
 
     <script>
         const urls = {};
+        const ADMIN_PASSCODE = '9690';
+        const BACKUP_VERSION = 1;
+        const STORAGE_KEY = 'kart_session_data';
         let settingsWs = null;
         let settingsReady = false;
         let settingsReconnectTimer = null;
+        /** @type {Record<string, unknown>|null} */
+        let currentSession = null;
 
-        function showToast(msg) {
+        function showToast(msg, isError = false) {
             const el = document.getElementById('toast');
             el.textContent = msg;
+            el.classList.toggle('error', isError);
             el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 1800);
+            setTimeout(() => {
+                el.classList.remove('show');
+                el.classList.remove('error');
+            }, 2200);
+        }
+
+        function setDataStatus(text, isError = false) {
+            const el = document.getElementById('data-status');
+            if (!el) return;
+            el.textContent = text;
+            el.classList.toggle('saved', !isError && !!text);
+            el.style.color = isError ? 'var(--accent)' : '';
+        }
+
+        function verifyPasscode() {
+            const input = document.getElementById('admin-passcode');
+            if (!input || input.value.trim() !== ADMIN_PASSCODE) {
+                showToast('Onjuiste code', true);
+                input?.focus();
+                return false;
+            }
+            return true;
+        }
+
+        function ensureServerReady() {
+            if (!settingsWs || settingsWs.readyState !== WebSocket.OPEN || !settingsReady) {
+                showToast('Niet verbonden met server', true);
+                return false;
+            }
+            return true;
+        }
+
+        function isRaceBusy(session) {
+            return session?.raceState === 'RACING' || session?.raceState === 'COUNTDOWN';
+        }
+
+        function sessionSummary(session) {
+            const teams = session?.teams ?? [];
+            const finished = teams.filter((t) => t?.status === 'finished').length;
+            return `${teams.length} team(s), ${finished} gefinisht.`;
+        }
+
+        function toMs(value) {
+            if (value == null) return null;
+            if (typeof value === 'number') return value;
+            const n = Number(value);
+            return Number.isFinite(n) ? n : null;
+        }
+
+        function sanitizeLoadedSession(session) {
+            if (session.raceState === 'COUNTDOWN') {
+                if (!session.countdownEnd || session.countdownEnd <= Date.now()) {
+                    session.raceState = 'IDLE';
+                    session.countdownEnd = null;
+                }
+            }
+            if (session.raceState !== 'RACING') {
+                session.raceStartTime = null;
+                session.teams.forEach((t) => {
+                    if (t?.status === 'racing') {
+                        t.status = 'pending';
+                        t.runStartTime = 0;
+                    }
+                });
+            }
+            if (session.raceState === 'IDLE') {
+                session.raceStartTime = null;
+                session.countdownEnd = null;
+            }
+            return session;
+        }
+
+        function validateBackupSession(raw) {
+            const session = raw.session ?? raw;
+            const teamList = session.teams ?? session.drivers;
+            if (!Array.isArray(teamList)) throw new Error('Back-upbestand mist een teamlijst.');
+
+            const validStates = ['IDLE', 'COUNTDOWN', 'RACING'];
+            if (!validStates.includes(session.raceState)) throw new Error('Back-up heeft een ongeldige racestatus.');
+
+            teamList.forEach((t, i) => {
+                if (!t || typeof t.name !== 'string' || !t.name.trim()) {
+                    throw new Error(`Team ${i + 1} heeft geen naam.`);
+                }
+                if (!['pending', 'racing', 'finished'].includes(t.status)) {
+                    throw new Error(`Team "${t.name}" heeft een ongeldige status.`);
+                }
+            });
+
+            const demerit = Number(session.demeritSecondsPerPoint);
+            return {
+                raceState: session.raceState,
+                raceStartTime: toMs(session.raceStartTime),
+                countdownEnd: toMs(session.countdownEnd),
+                demeritSecondsPerPoint: Number.isFinite(demerit) && demerit >= 0 ? demerit : 5,
+                teams: teamList.map((t, i) => ({
+                    id: t.id ?? Date.now() + i,
+                    name: String(t.name).trim(),
+                    category: t.category ?? 'gemengd',
+                    members: Array.isArray(t.members) ? t.members : undefined,
+                    verkleed: !!t.verkleed,
+                    demeritPoints: Math.max(0, Math.floor(Number(t.demeritPoints) || 0)),
+                    demeritsConfirmed: t.demeritsConfirmed === true,
+                    runElapsedSec: t.runElapsedSec != null ? Number(t.runElapsedSec) : undefined,
+                    totalTime: Number(t.totalTime) || 0,
+                    status: t.status,
+                    runStartTime: toMs(t.runStartTime) ?? 0,
+                    finishedAt: toMs(t.finishedAt),
+                })),
+            };
+        }
+
+        function backupFilename() {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+            return `gokart-backup-${stamp}.json`;
+        }
+
+        function sessionForBackup() {
+            if (!currentSession) return null;
+            const { undoSnapshot, ...rest } = currentSession;
+            return rest;
+        }
+
+        function backupRaceData() {
+            if (!verifyPasscode()) return;
+            if (!ensureServerReady()) return;
+            const session = sessionForBackup();
+            if (!session) {
+                showToast('Geen racedata op server', true);
+                return;
+            }
+            if (!confirm(
+                'Back-up downloaden van alle huidige racedata?\n\n'
+                + 'Dit slaat teams, tijden, wachtrij en instellingen op als JSON op dit apparaat.\n\n'
+                + `Huidige data: ${sessionSummary(session)}`,
+            )) return;
+
+            const payload = {
+                version: BACKUP_VERSION,
+                app: 'Go-Kart Remastered',
+                exportedAt: new Date().toISOString(),
+                session,
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = backupFilename();
+            a.click();
+            URL.revokeObjectURL(url);
+            setDataStatus('Back-up gedownload');
+            showToast('Back-up opgeslagen');
+        }
+
+        function promptRestoreFile() {
+            if (!verifyPasscode()) return;
+            if (!ensureServerReady()) return;
+            if (isRaceBusy(currentSession)) {
+                alert(
+                    'Herstellen niet mogelijk tijdens een aftelling of run.\n\n'
+                    + 'Wacht tot de baan vrij is en probeer opnieuw.',
+                );
+                return;
+            }
+            if (!confirm(
+                '⚠️ Racedata herstellen uit een back-upbestand?\n\n'
+                + 'Dit vervangt alle teams, tijden en wachtrij op elk verbonden apparaat.\n\n'
+                + 'Zorg dat je een recente back-up hebt voor je doorgaat.',
+            )) return;
+            document.getElementById('backup-file-input')?.click();
+        }
+
+        function restoreRaceDataFromFile(input) {
+            const file = input.files?.[0];
+            input.value = '';
+            if (!file) return;
+            if (!ensureServerReady()) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const raw = JSON.parse(reader.result);
+                    let session = validateBackupSession(raw);
+                    session = sanitizeLoadedSession(session);
+
+                    if (isRaceBusy(currentSession)) {
+                        alert('Herstellen niet mogelijk — er is een run gestart tijdens het laden.');
+                        return;
+                    }
+
+                    const summary = sessionSummary(session);
+                    const hasExisting = (currentSession?.teams?.length ?? 0) > 0;
+                    const ok = hasExisting
+                        ? confirm(
+                            `⚠️ Alle live racedata vervangen?\n\n${summary}\n\n`
+                            + 'Elk verbonden scherm schakelt onmiddellijk naar deze back-up.',
+                        )
+                        : confirm(`Racedata laden?\n\n${summary}`);
+                    if (!ok) return;
+
+                    settingsWs.send(JSON.stringify({ type: 'load', session }));
+                    try {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+                    } catch {
+                        // ignore quota errors on setup page
+                    }
+                    setDataStatus('Racedata hersteld');
+                    showToast('Racedata hersteld');
+                    alert(`Racedata hersteld.\n\n${summary}`);
+                } catch (err) {
+                    setDataStatus('Herstellen mislukt', true);
+                    alert(`Back-up kon niet worden hersteld:\n${err.message || err}`);
+                }
+            };
+            reader.onerror = () => {
+                setDataStatus('Bestand kon niet worden gelezen', true);
+                alert('Het geselecteerde bestand kon niet worden gelezen.');
+            };
+            reader.readAsText(file);
+        }
+
+        function deleteRaceData() {
+            if (!verifyPasscode()) return;
+            if (!ensureServerReady()) return;
+            if (isRaceBusy(currentSession)) {
+                alert(
+                    'Racedata kan niet worden verwijderd tijdens een aftelling of run.\n\n'
+                    + 'Rond de huidige run eerst af.',
+                );
+                return;
+            }
+            const summary = sessionSummary(currentSession);
+            if (!confirm(
+                '⚠️ ALLE RACEDATA VERWIJDEREN?\n\n'
+                + `Dit verwijdert permanent:\n• ${summary}\n• De volledige wachtrij\n\n`
+                + 'Strafpunt-instellingen blijven behouden. Elk verbonden scherm wordt leeggemaakt.\n\n'
+                + 'Dit kan niet ongedaan worden gemaakt.',
+            )) return;
+            if (!confirm('Laatste kans — alle teams en tijden verwijderen?')) return;
+
+            settingsWs.send(JSON.stringify({ type: 'reset' }));
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch {
+                // ignore
+            }
+            setDataStatus('Alle racedata verwijderd');
+            showToast('Racedata verwijderd');
         }
 
         function qrImageUrl(text) {
@@ -392,7 +683,7 @@
 
             settingsWs.onopen = () => {
                 settingsReady = false;
-                setSettingsStatus('Connecting…');
+                setSettingsStatus('Verbinden…');
                 settingsWs.send(JSON.stringify({ type: 'hello', role: 'home' }));
             };
 
@@ -401,41 +692,42 @@
                 try { msg = JSON.parse(event.data); } catch { return; }
                 if (msg.type !== 'session') return;
                 settingsReady = true;
+                currentSession = msg.session;
                 const sec = msg.session?.demeritSecondsPerPoint;
                 const input = document.getElementById('demerit-seconds');
                 if (input && sec != null) input.value = String(sec);
-                setSettingsStatus('Synced with server');
+                setSettingsStatus('Gesynchroniseerd met server');
             };
 
             settingsWs.onclose = () => {
                 settingsReady = false;
-                setSettingsStatus('Reconnecting…');
+                setSettingsStatus('Opnieuw verbinden…');
                 scheduleSettingsReconnect();
             };
 
             settingsWs.onerror = () => {
                 settingsReady = false;
-                setSettingsStatus('Connection error');
+                setSettingsStatus('Verbindingsfout');
             };
         }
 
         function saveDemeritSettings() {
             const input = document.getElementById('demerit-seconds');
             if (!input || !settingsWs || settingsWs.readyState !== WebSocket.OPEN || !settingsReady) {
-                showToast('Not connected to server');
+                showToast('Niet verbonden met server');
                 return;
             }
             const value = Number(input.value);
             if (!Number.isFinite(value) || value < 0) {
-                showToast('Enter a valid number of seconds');
+                showToast('Voer een geldig aantal seconden in');
                 return;
             }
             settingsWs.send(JSON.stringify({
                 type: 'updateSettings',
                 demeritSecondsPerPoint: value,
             }));
-            setSettingsStatus('Saved', true);
-            showToast('Demerit setting saved');
+            setSettingsStatus('Opgeslagen', true);
+            showToast('Strafpunt-instelling opgeslagen');
         }
 
         async function init() {
@@ -469,9 +761,9 @@
 
             const note = document.getElementById('network-note');
             if (info.addresses?.length) {
-                note.innerHTML = '<strong>Network:</strong> Share these URLs with devices on '
-                    + '<code>' + info.primaryAddress + '</code> (same Wi‑Fi). '
-                    + 'Laptop and iPad cannot use <code>localhost</code>.';
+                note.innerHTML = '<strong>Netwerk:</strong> Deel deze url\'s met apparaten op '
+                    + '<code>' + info.primaryAddress + '</code> (zelfde Wi‑Fi). '
+                    + 'Laptop en iPad kunnen geen <code>localhost</code> gebruiken.';
             }
         }
 
@@ -482,9 +774,9 @@
                 if (!url) return;
                 try {
                     await navigator.clipboard.writeText(url);
-                    showToast('Copied!');
+                    showToast('Gekopieerd!');
                 } catch {
-                    prompt('Copy this URL:', url);
+                    prompt('Kopieer deze url:', url);
                 }
             });
         });
@@ -492,6 +784,12 @@
         document.getElementById('demerit-save-btn')?.addEventListener('click', saveDemeritSettings);
         document.getElementById('demerit-seconds')?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveDemeritSettings();
+        });
+        document.getElementById('backup-data-btn')?.addEventListener('click', backupRaceData);
+        document.getElementById('restore-data-btn')?.addEventListener('click', promptRestoreFile);
+        document.getElementById('delete-data-btn')?.addEventListener('click', deleteRaceData);
+        document.getElementById('backup-file-input')?.addEventListener('change', (e) => {
+            restoreRaceDataFromFile(e.target);
         });
 
         init();
