@@ -12,7 +12,7 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const SESSION_FILE = path.join(__dirname, 'data', 'session.json');
 
 const COUNTDOWN_SEC = 5;
-const DEFAULT_DEMERIT_SEC_PER_POINT = 5;
+const DEFAULT_DEMERIT_SEC_PER_POINT = 10;
 
 /** @type {import('ws').WebSocket[]} */
 const clients = [];

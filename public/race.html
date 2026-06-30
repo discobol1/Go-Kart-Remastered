@@ -463,6 +463,8 @@
             background: var(--accent-tint-soft); padding: 2px 6px;
             flex-shrink: 0;
         }
+        .btn-start { background: #00C853; color: #000; }
+        .btn-start:disabled { opacity: 0.35; cursor: not-allowed; }
         .btn-stop { background: var(--accent); color: white; }
         .btn-undo { background: var(--undo-bg); color: var(--warning); border: 2px solid var(--warning); }
         .btn-undo:disabled { opacity: 0.35; cursor: not-allowed; }
@@ -509,20 +511,8 @@
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center; min-height: 0;
         }
-        #display-status-pill {
-            font-size: 1rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 4px; padding: 8px 24px;
-            border: 2px solid var(--border); color: var(--muted-dim); margin-bottom: 20px;
-        }
-        #display-status-pill.racing { color: var(--success); border-color: var(--success); }
-        #display-status-pill.idle { color: var(--muted-dim); }
         #display-live .team-line {
             justify-content: center; margin-bottom: 16px; max-width: 100%;
-        }
-        #display-live-name {
-            font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800;
-            text-transform: uppercase; line-height: 1.15;
-            word-break: break-word;
         }
         #main-timer {
             font-family: 'Consolas', monospace;
@@ -673,6 +663,7 @@
             margin-bottom: 8px;
             padding: 8px;
             border: 1px solid var(--card-outline);
+            box-shadow: 0 0 24px var(--neon-glow);
             transition: transform 0.25s ease, opacity 0.25s ease;
         }
 
@@ -860,9 +851,6 @@
             #main-timer {
                 font-size: clamp(2.5rem, 14vw, 4.5rem);
             }
-            #display-live-name {
-                font-size: clamp(1.25rem, 5vw, 2rem);
-            }
             #display-next-up-name {
                 font-size: clamp(1.5rem, 6vw, 2.5rem);
             }
@@ -897,7 +885,7 @@
         </div>
         <div class="manager-columns">
             <section class="manager-col manager-col-pending">
-                <h3 class="col-title">Wachtrij</h3>
+                <h3 class="col-title">Volgende</h3>
                 <div id="on-track-wrap" class="on-track-wrap hidden">
                     <div class="col-subtitle">Op de baan</div>
                     <div id="list-racing"></div>
@@ -951,7 +939,7 @@
         </div>
         <div class="control-columns">
             <section class="control-col control-col-past">
-                <h3 class="col-title">Vorige runs</h3>
+                <h3 class="col-title">Vorige races</h3>
                 <div class="control-sort-bar">
                     <button type="button" id="sort-recent" class="sort-btn active" onclick="setControlResultsSort('recent')">Laatste runs</button>
                     <button type="button" id="sort-best" class="sort-btn" onclick="setControlResultsSort('best')">Beste tijden</button>
@@ -959,7 +947,7 @@
                 <div id="control-list-finished" class="control-col-list"></div>
             </section>
             <section class="control-col control-col-pending">
-                <h3 class="col-title">Wachtrij</h3>
+                <h3 class="col-title">Volgende races</h3>
                 <div id="control-list-pending" class="control-col-list"></div>
             </section>
         </div>
@@ -1010,13 +998,11 @@
         </div>
         <div class="display-columns">
             <section class="display-col">
-                <h3 class="col-title">Huidige run</h3>
+                <h3 class="col-title" id="display-live-title">—</h3>
                 <div id="display-live">
                     <div class="display-live-center">
-                        <div id="display-status-pill" class="idle">Klaar</div>
                         <div class="team-line">
                             <div id="display-live-cat"></div>
-                            <div id="display-live-name">—</div>
                         </div>
                         <div id="main-timer" class="dim">00:00.000</div>
                     </div>
@@ -1109,9 +1095,10 @@
          *     (all f → vrouwen, else → gemengd). Jeugd is manual via dropdown.
          *   Legacy category "mannen" migrates to gemengd on load.
          *
-         * SCORING — officialFinishTime(team, elapsedSec)
-         *   −5s per woman (WOMAN_BONUS_SEC), adult teams only (not jeugd)
+         * SCORING — officialFinishTime(team, elapsedSec) — applied at finish only
+         *   −5s per woman in gemengd teams (WOMAN_BONUS_SEC), max 15s; not jeugd/vrouwen
          *   −10s if verkleed (VERKLEED_BONUS_SEC); stored as team.totalTime
+         *   Live timer during RACING shows raw clock only (no bonuses or demerits).
          *
          * TEAM — @typedef {Team} below
          *   id, name, category, members[], verkleed, totalTime, status,
@@ -1126,7 +1113,7 @@
          *   Manager:   managerAdd, onAddCategoryChange, rebuildMemberAddRow,
          *              reorderPending, setupManagerPendingDragDrop
          *   Control:   controlStart, controlStop, controlUndo, armCountdownTimer
-         *   Scoring:   officialFinishTime, womenCount, categoryFromMembers
+         *   Scoring:   officialFinishTime, womenBonusSec, womenCount, categoryFromMembers
          *   Render:    renderUI → renderManager | renderControl | renderDisplay
          *   UI/icons:  buildTeamLabel, setCategoryBadge, appendMemberComposition,
          *              appendVerkleedBadge, categoryIconSvg
@@ -1145,8 +1132,9 @@
         const ADULT_TEAM_SIZE = 4;
         const JEUGD_TEAM_SIZE = 2;
         const WOMAN_BONUS_SEC = 5;
+        const WOMAN_BONUS_MAX_SEC = 15;
         const VERKLEED_BONUS_SEC = 10;
-        const DEFAULT_DEMERIT_SEC_PER_POINT = 5;
+        const DEFAULT_DEMERIT_SEC_PER_POINT = 10;
         const CATEGORIES = {
             gemengd: { label: 'Gemengd' },
             vrouwen: { label: 'Vrouwen' },
@@ -1204,9 +1192,9 @@
          * @property {number} id
          * @property {string} name
          * @property {CategoryKey} category
-         * @property {MemberGender[]} members — 2 (jeugd) or 4; woman bonus adult teams only
+         * @property {MemberGender[]} members — 2 (jeugd) or 4; woman bonus gemengd only
          * @property {boolean} verkleed — costume team; −VERKLEED_BONUS_SEC applied at finish
-         * @property {number} totalTime — official finish time in seconds (bonus included)
+         * @property {number} totalTime — official finish time (bonuses/demerits applied at finish)
          * @property {TeamStatus} status
          * @property {number} runStartTime — ms when run began (0 if not started)
          * @property {number} [finishedAt] — ms when stopped; used for “Last Races” sort
@@ -1272,6 +1260,12 @@
         /** @param {Team} team @returns {number} */
         function womenCount(team) {
             return (team.members ?? []).filter((m) => m === 'f').length;
+        }
+
+        /** @param {Team} team @returns {number} Seconds subtracted for women in gemengd teams. */
+        function womenBonusSec(team) {
+            if (team.category !== 'gemengd') return 0;
+            return Math.min(womenCount(team) * WOMAN_BONUS_SEC, WOMAN_BONUS_MAX_SEC);
         }
 
         /**
@@ -1359,29 +1353,22 @@
 
         /**
          * Apply woman + Verkleed bonuses to raw elapsed seconds; stored as totalTime.
-         * Woman bonus does not apply to Jeugd teams.
+         * Woman bonus applies to gemengd teams only (max 15s); not jeugd or vrouwen.
          * @param {Team} team
          * @param {number} elapsedSec
          * @returns {number}
          */
         function officialFinishTime(team, elapsedSec) {
             let time = Math.max(0, elapsedSec);
-            if (team.category !== 'jeugd') {
-                time = Math.max(0, time - womenCount(team) * WOMAN_BONUS_SEC);
-            }
+            time = Math.max(0, time - womenBonusSec(team));
             if (team.verkleed) time = Math.max(0, time - VERKLEED_BONUS_SEC);
             time += demeritPenaltySec(team);
             return time;
         }
 
-        /**
-         * Live or projected official time including bonuses and demerits.
-         * @param {Team} team
-         * @param {number} elapsedSec
-         * @returns {number}
-         */
-        function projectedOfficialTime(team, elapsedSec) {
-            return officialFinishTime(team, elapsedSec);
+        /** Raw clock seconds during an active run (bonuses/demerits excluded). @param {number} elapsedSec */
+        function liveRaceClockSec(elapsedSec) {
+            return Math.max(0, elapsedSec);
         }
 
         /**
@@ -1446,9 +1433,12 @@
             const total = members.length;
             if (isJeugd) {
                 wrap.title = `${women} vrouw${women === 1 ? '' : 'en'}, ${total - women} man${total - women === 1 ? '' : 'nen'} (jeugd — geen vrouwenbonus)`;
+            } else if (team.category === 'vrouwen') {
+                wrap.title = `${total} vrouwen`;
             } else {
-                wrap.title = women
-                    ? `${women} vrouw${women === 1 ? '' : 'en'} (−${women * WOMAN_BONUS_SEC}s)`
+                const bonus = womenBonusSec(team);
+                wrap.title = bonus
+                    ? `${women} vrouw${women === 1 ? '' : 'en'} (−${bonus}s)`
                     : `${total} mannen (geen vrouwenbonus)`;
             }
             wrap.setAttribute('aria-label', wrap.title);
@@ -2813,8 +2803,8 @@
 
             const raw = document.createElement('span');
             raw.className = 'control-result-time control-result-time--raw';
-            raw.title = 'Tijd zonder straf';
-            raw.textContent = formatTime(officialTimeWithoutDemerit(team));
+            raw.title = 'Ruwe tijd';
+            raw.textContent = formatTime(team.runElapsedSec ?? officialTimeWithoutDemerit(team));
 
             const badge = document.createElement('span');
             badge.className = 'demerit-badge';
@@ -2995,8 +2985,8 @@
                 liveCat.appendChild(badge);
                 liveName.textContent = racing.name;
                 const elapsed = raceStartTime ? (Date.now() - raceStartTime) / 1000 : 0;
-                liveTimer.textContent = formatTime(projectedOfficialTime(racing, elapsed));
-                liveTimer.className = (racing.demeritPoints ?? 0) > 0 ? 'warn' : '';
+                liveTimer.textContent = formatTime(liveRaceClockSec(elapsed));
+                liveTimer.className = '';
             } else {
                 controlLights?.classList.add('hidden');
                 controlLights?.setAttribute('aria-hidden', 'true');
@@ -3022,7 +3012,9 @@
                 const pts = reviewTeam.demeritPoints ?? 0;
                 demeritTeamEl.textContent = reviewTeam.name;
                 demeritPointsEl.textContent = `${pts} pnt`;
-                demeritPenaltyEl.textContent = `+${formatTime(demeritPenaltySec(reviewTeam))} straf`;
+                demeritPenaltyEl.textContent = reviewTeam.status === 'racing'
+                    ? 'Wordt verrekend na finish'
+                    : `+${formatTime(demeritPenaltySec(reviewTeam))} straf`;
                 demeritMinusBtn.disabled = pts <= 0;
                 demeritPlusBtn.disabled = false;
                 demeritConfirmBtn?.classList.toggle('hidden', !awaitingConfirm);
@@ -3119,15 +3111,18 @@
         /** Display panel: live timer, leaderboard, countdown overlay, next up. */
         function renderDisplay() {
             const panel = document.getElementById('display-panel');
-            const liveNameEl = document.getElementById('display-live-name');
             const timerEl = document.getElementById('main-timer');
             const overlay = document.getElementById('countdown-overlay');
             const countdownTeamName = document.getElementById('countdown-team-name');
             const countdownLights = document.getElementById('countdown-f1-lights');
             const countdownStatus = document.getElementById('countdown-status');
-            const statusPill = document.getElementById('display-status-pill');
             const racingTeam = currentRacing();
             const nextTeam = nextPending();
+            const liveTitleEl = document.getElementById('display-live-title');
+            const displayTeam = raceState === 'RACING' ? racingTeam
+                : raceState === 'COUNTDOWN' ? nextTeam
+                : undefined;
+            if (liveTitleEl) liveTitleEl.textContent = displayTeam?.name ?? '—';
 
             renderDisplayLeaderboard();
 
@@ -3154,22 +3149,14 @@
             overlay.classList.remove('visible', 'go');
 
             if (raceState === 'RACING' && raceStartTime) {
-                statusPill.textContent = 'Op de baan';
-                statusPill.className = 'racing';
                 renderCategoryBadge(document.getElementById('display-live-cat'), racingTeam);
-                liveNameEl.textContent = racingTeam ? racingTeam.name : '—';
                 const elapsed = (Date.now() - raceStartTime) / 1000;
-                timerEl.textContent = formatTime(
-                    racingTeam ? projectedOfficialTime(racingTeam, elapsed) : elapsed,
-                );
-                timerEl.className = racingTeam && (racingTeam.demeritPoints ?? 0) > 0 ? 'live warn' : 'live';
+                timerEl.textContent = formatTime(liveRaceClockSec(elapsed));
+                timerEl.className = 'live';
             } else {
-                statusPill.textContent = 'Klaar';
-                statusPill.className = 'idle';
                 timerEl.textContent = '00:00.000';
                 timerEl.className = 'dim';
                 document.getElementById('display-live-cat').replaceChildren();
-                liveNameEl.textContent = '—';
             }
             updateDisplayNextUp(nextTeam, secondPending());
         }

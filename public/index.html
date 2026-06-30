@@ -58,6 +58,7 @@
             color: var(--muted); line-height: 1.6; margin: 0;
             font-size: clamp(0.9rem, 2.5vw, 1rem);
             text-align: center;
+            text-shadow: 0 0 20px var(--neon-glow);
         }
         .lead::after {
             content: '';
@@ -157,11 +158,12 @@
         }
         .qr-placeholder { color: var(--muted-dim); font-size: 0.8rem; opacity: 0.8; }
         .network-note {
-            margin-top: clamp(20px, 4vw, 32px);
+            margin: clamp(14px, 3vw, 20px) 0 clamp(20px, 4vw, 32px);
             padding: var(--card-pad);
             background: var(--warning-tint-soft);
             border: 1px solid var(--warning-tint-border);
- color: var(--muted-light);
+            box-shadow: 0 0 24px var(--neon-glow);
+            color: var(--muted-light);
             font-size: clamp(0.8rem, 2.2vw, 0.9rem);
             line-height: 1.6;
         }
@@ -265,6 +267,10 @@
             <p class="lead">
                 Start de server op de host-pc. Open elke rol op het juiste apparaat — alle schermen blijven gesynchroniseerd via je lokale Wi‑Fi.
             </p>
+            <p class="network-note" id="network-note">
+                <strong>Tip:</strong> Laptop en iPad moeten de netwerk-url hieronder gebruiken (niet <code>localhost</code>).
+                Alle apparaten moeten op hetzelfde Wi‑Fi zitten als deze host.
+            </p>
         </header>
 
         <div class="device-grid">
@@ -273,7 +279,7 @@
                     <div class="icon display">📺</div>
                     <div>
                         <strong>Publiek display</strong>
-                        <span>Host-pc / beamer — klassement &amp; live timer</span>
+                        <span>klassement &amp; live timer</span>
                     </div>
                 </div>
                 <div class="url-row">
@@ -288,7 +294,7 @@
                     <div class="icon manager">💻</div>
                     <div>
                         <strong>Racebeheer</strong>
-                        <span>Laptop — teams toevoegen &amp; wachtrij beheren</span>
+                        <span>teams toevoegen &amp; wachtrij beheren</span>
                     </div>
                 </div>
                 <div class="qr-wrap"><span class="qr-placeholder">QR laden…</span></div>
@@ -304,7 +310,7 @@
                     <div class="icon control">📱</div>
                     <div>
                         <strong>Race-official</strong>
-                        <span>iPad — starten, afronden &amp; ongedaan maken</span>
+                        <span>starten, afronden &amp; ongedaan maken</span>
                     </div>
                 </div>
                 <div class="qr-wrap"><span class="qr-placeholder">QR laden…</span></div>
@@ -316,11 +322,6 @@
             </article>
         </div>
 
-        <p class="network-note" id="network-note">
-            <strong>Tip:</strong> Laptop en iPad moeten de netwerk-url hierboven gebruiken (niet <code>localhost</code>).
-            Alle apparaten moeten op hetzelfde Wi‑Fi zitten als deze host.
-        </p>
-
         <section class="settings-card" id="race-settings">
             <h2>Race-instellingen</h2>
             <p>
@@ -330,7 +331,7 @@
             <div class="settings-row">
                 <div class="settings-field">
                     <label for="demerit-seconds">Seconden per strafpunt</label>
-                    <input type="number" id="demerit-seconds" min="0" max="3600" step="1" value="5">
+                    <input type="number" id="demerit-seconds" min="0" max="3600" step="1" value="10">
                 </div>
                 <button type="button" class="btn" id="demerit-save-btn">Opslaan</button>
             </div>
@@ -471,7 +472,7 @@
                 raceState: session.raceState,
                 raceStartTime: toMs(session.raceStartTime),
                 countdownEnd: toMs(session.countdownEnd),
-                demeritSecondsPerPoint: Number.isFinite(demerit) && demerit >= 0 ? demerit : 5,
+                demeritSecondsPerPoint: Number.isFinite(demerit) && demerit >= 0 ? demerit : 10,
                 teams: teamList.map((t, i) => ({
                     id: t.id ?? Date.now() + i,
                     name: String(t.name).trim(),
