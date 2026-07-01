@@ -308,7 +308,7 @@
                 <div class="device-head">
                     <div class="icon manager">💻</div>
                     <div>
-                        <strong>Racebeheer</strong>
+                        <strong>Administrator</strong>
                         <span>teams toevoegen &amp; wachtrij beheren</span>
                     </div>
                 </div>
@@ -317,14 +317,14 @@
                     <code class="url-text">Laden…</code>
                     <button type="button" class="btn copy-btn" data-role="manager">Kopiëren</button>
                 </div>
-                <a class="btn open" href="/manager">Beheer openen (deze pc)</a>
+                <a class="btn open" href="/manager">Administrator openen (deze pc)</a>
             </article>
 
             <article class="device-card" data-role="control">
                 <div class="device-head">
                     <div class="icon control">📱</div>
                     <div>
-                        <strong>Race-official</strong>
+                        <strong>Wedstrijdleider</strong>
                         <span>starten, afronden &amp; ongedaan maken</span>
                     </div>
                 </div>
@@ -333,12 +333,12 @@
                     <code class="url-text">Laden…</code>
                     <button type="button" class="btn copy-btn" data-role="control">Kopiëren</button>
                 </div>
-                <a class="btn open primary" href="/control">Official openen (deze pc)</a>
+                <a class="btn open primary" href="/control">Wedstrijdleider openen (deze pc)</a>
             </article>
         </div>
 
         <section class="settings-card settings-card--danger" id="race-data-settings">
-            <h2>Racedata</h2>
+            <h2>Instellingen</h2>
             <p class="settings-warning">
                 <strong>Beschermde acties.</strong> Back-up, herstel, verwijderen en strafpunt-instellingen gelden voor elk verbonden scherm.
                 Een code is vereist. Herstel of verwijder niet tijdens een actieve aftelling of run.
@@ -353,7 +353,7 @@
             </div>
             <p>
                 Taakstraffen voegen boetetijd toe aan de officiële tijd van een team.
-                Officials geven punten tijdens een run op de iPad; elk punt telt de seconden hieronder.
+                De wedstrijdleider geeft punten tijdens een run op de iPad; elk punt telt de seconden hieronder.
             </p>
             <div class="settings-row">
                 <div class="settings-field">
@@ -364,7 +364,7 @@
             </div>
             <p>
                 Maak vóór of tijdens het evenement een back-up: je downloadt een JSON-bestand met teams, tijden, wachtrij en instellingen.
-                Herstellen laadt zo'n bestand en vervangt de live data op manager, official en display — doe dit alleen als de baan vrij is.
+                Herstellen laadt zo'n bestand en vervangt de live data op administrator, wedstrijdleider en display — doe dit alleen als de baan vrij is.
                 Verwijderen wist alles voor een schone start; ontgrendel eerst met de pincode. Destructieve acties vragen om een bevestiging.
             </p>
             <div class="settings-actions">
@@ -380,6 +380,13 @@
     <div class="toast" id="toast">Gekopieerd!</div>
 
     <script>
+        /**
+         * GO-KART REMASTERED — setup-pagina
+         *
+         * Toont url's en QR-codes per rol, en pincode-beveiligde instellingen:
+         * strafpunten, back-up, herstel en verwijderen van racedata.
+         */
+
         const urls = {};
         const ADMIN_PASSCODE = '9690';
         const BACKUP_VERSION = 1;

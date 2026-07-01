@@ -1,26 +1,35 @@
 'use strict';
 
+/**
+ * Go-Kart Remastered — lokale race-server
+ *
+ * Synchroniseert display, administrator en wedstrijdleider via WebSocket.
+ * Sessie wordt in geheugen gehouden en opgeslagen in data/session.json.
+ */
+
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const os = require('os');
 const express = require('express');
 const { WebSocketServer } = require('ws');
-const { appRoot, publicDir, sessionFile } = require('./scripts/paths');
+const { publicDir, sessionFile } = require('./scripts/paths');
 
 const PORT = Number(process.env.PORT) || 8765;
 const PUBLIC_DIR = publicDir();
 const SESSION_FILE = sessionFile();
 
+/** F1-aftelling in seconden voordat de GO-fase start. */
 const COUNTDOWN_SEC = 5;
+/** Standaard boeteseconden per taakstrafpunt (aanpasbaar via setup). */
 const DEFAULT_DEMERIT_SEC_PER_POINT = 10;
 
-/** @type {import('ws').WebSocket[]} */
+/** Alle verbonden WebSocket-clients. */
 const clients = [];
 
-/** @type {Session} */
+/** Live racesessie — bron van waarheid voor alle schermen. */
 let session = emptySession();
-/** @type {Session|null} — state before last Start / GO / Stop (control undo) */
+/** Snapshot vóór laatste Start / GO / Afronden (alleen wedstrijdleider kan terugdraaien). */
 let undoSnapshot = null;
 
 /**
@@ -100,8 +109,11 @@ function nextPendingTeam(teams) {
 
 function mergeForRole(incoming, role) {
   const data = sanitizeSession(incoming);
+  // Display mag nooit de racestatus wijzigen.
   if (role === 'display') return null;
+  // Wedstrijdleider heeft volledige timing-autoriteit.
   if (role === 'control') return data;
+  // Administrator en setup mogen alleen teams beheren, niet de timer.
   if (role === 'manager' || role === 'home') {
     return {
       raceState: session.raceState,
@@ -241,12 +253,25 @@ function buildUrls(host = 'localhost') {
 loadSessionFromDisk();
 
 const app = express();
+
+// --- HTTP-routes ---
+
+/** Race-UI alleen met geldige rol; anders terug naar setup. */
+app.get('/race.html', (req, res) => {
+  const mode = typeof req.query.mode === 'string' ? req.query.mode : '';
+  if (mode !== 'display' && mode !== 'manager' && mode !== 'control') {
+    return res.redirect('/');
+  }
+  res.sendFile(path.join(PUBLIC_DIR, 'race.html'));
+});
+
 app.use(express.static(PUBLIC_DIR));
 
 app.get('/', (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
+/** Korte url's per rol → race.html?mode=… */
 for (const mode of ['display', 'manager', 'control']) {
   app.get(`/${mode}`, (_req, res) => {
     res.redirect(`/race.html?mode=${mode}`);
@@ -267,6 +292,8 @@ app.get('/api/info', (_req, res) => {
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
+
+// --- WebSocket: sessie synchroniseren tussen alle schermen ---
 
 wss.on('connection', (ws) => {
   /** @type {'display'|'manager'|'control'|'home'|''} */
@@ -350,15 +377,15 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('\n  Go-Kart Remastered — race server running\n');
   console.log(`  Setup:            http://localhost:${PORT}/`);
   console.log(`  Host display:     http://localhost:${PORT}/display`);
-  console.log(`  Race manager:     http://localhost:${PORT}/manager`);
-  console.log(`  Race official:    http://localhost:${PORT}/control`);
+  console.log(`  Administrator:    http://localhost:${PORT}/manager`);
+  console.log(`  Wedstrijdleider:  http://localhost:${PORT}/control`);
   console.log('');
   if (addrs.length) {
     console.log('  On your local network (share with laptop & iPad):');
     for (const ip of addrs) {
       console.log(`    Display:  http://${ip}:${PORT}/display`);
-      console.log(`    Manager:  http://${ip}:${PORT}/manager`);
-      console.log(`    Official: http://${ip}:${PORT}/control`);
+      console.log(`    Administrator:  http://${ip}:${PORT}/manager`);
+      console.log(`    Wedstrijdleider:  http://${ip}:${PORT}/control`);
       console.log('');
     }
   } else {

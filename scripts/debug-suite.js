@@ -1,5 +1,9 @@
 'use strict';
 
+/**
+ * Integratietests voor Go-Kart Remastered.
+ * Start een tijdelijke server op poort 9876, draait alle checks, herstelt session.json.
+ */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -73,8 +77,14 @@ async function testHttpAndStatic({ assert, port }) {
   assert('GET /api/info has urls', info.urls?.manager && info.urls?.control && info.urls?.display);
   assert('GET /api/info has localUrls', !!info.localUrls?.display);
 
-  const race = await httpGet(`http://127.0.0.1:${port}/race.html`);
-  assert('GET /race.html returns 200', race.status === 200);
+  const raceBare = await httpGet(`http://127.0.0.1:${port}/race.html`);
+  assert('GET /race.html without mode redirects to setup', raceBare.status === 302 && raceBare.headers.location === '/');
+
+  const race = await httpGet(`http://127.0.0.1:${port}/race.html?mode=display`);
+  assert('GET /race.html with mode returns 200', race.status === 200);
+  assert('race.html has no mode selection screen', !race.body.includes('id="mode-selection"'));
+  assert('race.html has no dead backup helpers', !race.body.includes('function backupRaceData'));
+  assert('race.html boots after all definitions', /bootFromUrl\(\);\s*<\/script>/.test(race.body));
   assert('race.html has GO_HOLD_MS', race.body.includes('GO_HOLD_MS'));
   assert('race.html has setF1Lights', race.body.includes('function setF1Lights'));
   assert('race.html has manager pending edit panel', race.body.includes('team-item-edit-panel'));

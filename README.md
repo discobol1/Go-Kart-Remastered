@@ -25,8 +25,8 @@ npm run launch
 | Device | Role | URL |
 |--------|------|-----|
 | Host PC / projector | Public display | `http://<host-ip>:8765/display` |
-| Laptop | Race manager (teams) | `http://<host-ip>:8765/manager` |
-| iPad | Race official (timing) | `http://<host-ip>:8765/control` |
+| Laptop | Administrator (teams) | `http://<host-ip>:8765/manager` |
+| iPad | Wedstrijdleider (timing) | `http://<host-ip>:8765/control` |
 
 The setup page shows your LAN IP, copyable URLs, and QR codes. Only the host PC should use `localhost`; other devices need the network IP (e.g. `192.168.x.x`).
 
@@ -73,11 +73,11 @@ Edit `"version"` in `package.json` before running `npm run build` or `npm run bu
 ## Race day tips
 
 1. Click **"Click to enable sound"** on the display once before the first countdown.
-2. Only one device should run the **Race Official** view during the event.
+2. Only one device should run the **Wedstrijdleider** view during the event.
 3. Use **Racedata back-uppen** on the setup page before and after the event.
 4. Race data is auto-saved in `data/session.json` on the host (survives refresh; cleared on Reset).
 
-## Keyboard shortcuts (Race Official)
+## Keyboard shortcuts (Wedstrijdleider)
 
 - **Space** — Start / Finish
 - **Z** — Undo last action
@@ -85,6 +85,5 @@ Edit `"version"` in `package.json` before running `npm run build` or `npm run bu
 ## Tests
 
 ```bash
-npm test          # full suite (61 checks)
-npm run test:debug
+npm test
 ```

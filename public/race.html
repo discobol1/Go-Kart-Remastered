@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Go-Kart Remastered — Racesysteem</title>
+    <title>Go-Kart Remastered</title>
     <style>
         :root {
             color-scheme: dark;
@@ -53,19 +53,6 @@
             font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden;
         }
         
-        /* --- MODE SELECTION --- */
-        #mode-selection {
-            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
-        }
-        .mode-btn { 
-            padding: 30px 60px; font-size: 1.5rem; cursor: pointer; border: none; 
- font-weight: bold; width: 350px; transition: 0.3s;
-        }
-        .mode-btn:hover { transform: scale(1.05); opacity: 0.9; }
-        .mode-hint { color: var(--muted-dim); font-size: 0.9rem; max-width: 420px; text-align: center; line-height: 1.5; }
-        #mode-selection h1 { text-align: center; text-shadow: 0 0 40px var(--neon-glow); }
-
         /* --- COMMON UI ELEMENTS --- */
         .hidden { display: none !important; }
 
@@ -559,21 +546,6 @@
         .btn-stop { background: var(--accent); color: white; }
         .btn-undo { background: var(--undo-bg); color: var(--warning); border: 2px solid var(--warning); }
         .btn-undo:disabled { opacity: 0.35; cursor: not-allowed; }
-        .mode-data-actions {
-            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
-            margin-top: 40px; max-width: 720px;
-        }
-        .btn-data {
-            background: var(--surface); color: var(--text-secondary); font-size: 0.85rem;
-            border: 1px solid var(--border-strong); padding: 12px 24px;
-        }
-        .btn-data:hover { border-color: var(--warning); color: var(--text); background: var(--warning-tint-soft); }
-        .btn-reset {
-            background: none; color: var(--accent); font-size: 0.85rem;
-            border: 1px solid var(--border-strong); padding: 12px 24px;
-        }
-        .btn-reset:hover { border-color: var(--accent); background: var(--accent-tint-soft); }
-        #backup-file-input { display: none; }
 
         /* --- DISPLAY MODE (flexible, matches manager / control) --- */
         #display-panel {
@@ -978,17 +950,6 @@
         <button type="button" class="panel-action-btn" id="fullscreen-btn" onclick="toggleFullscreen()">⛶ Volledig scherm</button>
     </div>
 
-    <div id="mode-selection">
-        <h1 style="font-size: 3rem;">Go-Kart Remastered</h1>
-        <p class="mode-hint">Open elke rol op een apart apparaat via je lokale netwerk. De host toont het publieke display, een laptop beheert teams en een iPad doet de tijdwaarneming.</p>
-        <button class="mode-btn" style="background: var(--warning); color: #000000;" onclick="setMode('manager')">Beheer (Line-up)</button>
-        <button class="mode-btn" style="background: var(--success); color: white;" onclick="setMode('control')">Official (Timing)</button>
-        <button class="mode-btn" style="background: var(--muted-dim); color: white;" onclick="setMode('display')">Display (Publiek)</button>
-        <p class="mode-hint" style="margin-top: 32px; font-size: 0.9rem; opacity: 0.85;">
-            Back-up, herstel en verwijderen van racedata staan op de <a href="/" style="color: var(--warning);">Setup</a>-pagina (code vereist).
-        </p>
-    </div>
-
     <div id="manager-panel" class="hidden">
         <div class="panel-toolbar">
             <div id="panel-actions-slot-manager"></div>
@@ -1160,85 +1121,22 @@
     </div>
 
     <script>
-        /* =============================================================================
-         * GO-KART REMASTERED — race.html (single-file app)
-         * =============================================================================
+        /**
+         * GO-KART REMASTERED — race UI (één pagina, drie rollen)
          *
-         * QUICK START
-         *   npm install && npm start
-         *   Host display:  http://<host-ip>:8765/display
-         *   Race manager:  http://<host-ip>:8765/manager   (laptop)
-         *   Race official: http://<host-ip>:8765/control    (iPad)
-         *   Setup page:    http://<host-ip>:8765/
+         * Openen via setup-pagina of directe url:
+         *   /display  — publiek beamer-scherm
+         *   /manager  — administrator: teams & wachtrij
+         *   /control  — wedstrijdleider: start, finish, straffen, undo
          *
-         * PURPOSE
-         *   Time-trial timing for go-kart teams (one run per team, no laps).
-         *   All devices share one session via WebSocket to the local server.
+         * Synchronisatie: WebSocket naar dezelfde host; server is bron van waarheid.
+         * Back-up, herstel en verwijderen: alleen op de setup-pagina (/).
          *
-         * MODES — setMode('manager' | 'control' | 'display')
-         *   manager  — queue + results (no timing authority)
-         *   control  — ONLY tab that starts/finishes races; owns countdown timer
-         *   display  — public screen (rAF loop); countdown overlay + sound prompt
-         *
-         * UI LAYOUT
-         *   MANAGER — Pending (drag-drop) | Finished (Last Races / Best Times).
-         *     Add bar: Team Name | Verkleed (icon toggle) | Category dropdown |
-         *              member toggles (2 or 4) | Add Team.
-         *   CONTROL — Pending | Past Races (sortable).
-         *     Bottom bar: “NOW:” + team + timer | START / FINISH | UNDO.
-         *     Bar background: gray (idle) | yellow (countdown) | green (racing).
-         *   DISPLAY — Current Run + Leaderboard; Next Up (+ Then) pinned at bottom.
-         *
-         * SYNC
-         *   WebSocket to same host — server is source of truth
-         *   sync() — send update to server, cache in localStorage
-         *   applySession() — load from server push or backup
-         *
-         * RACE STATE (control tab only)
-         *   IDLE → COUNTDOWN (5s) → RACING → IDLE
-         *   armCountdownTimer() must run in control tab after countdown starts.
-         *   Keyboard (control, not in inputs): Space = start/finish, Z = undo.
-         *
-         * CATEGORIES & COMPOSITION (add form)
-         *   gemengd — 4 members, default all male; toggles enabled
-         *   vrouwen — 4 members, all female; toggles enabled
-         *   jeugd   — 2 members, toggles locked (yellow child icons)
-         *   Dropdown drives member count; toggling members updates dropdown
-         *     (all f → vrouwen, else → gemengd). Jeugd is manual via dropdown.
-         *   Legacy category "mannen" migrates to gemengd on load.
-         *
-         * SCORING — officialFinishTime(team, elapsedSec) — applied at finish only
-         *   −5s per woman in gemengd teams (WOMAN_BONUS_SEC), max 15s; not jeugd/vrouwen
-         *   −10s if verkleed (VERKLEED_BONUS_SEC); stored as team.totalTime
-         *   Live timer during RACING shows raw clock only (no bonuses or demerits).
-         *
-         * TEAM — @typedef {Team} below
-         *   id, name, category, members[], verkleed, totalTime, status,
-         *   runStartTime, finishedAt?
-         *
-         * BACKUP JSON
-         *   { version, app, exportedAt, session: { raceState, raceStartTime,
-         *     countdownEnd, teams } } — legacy "drivers" field still loads.
-         *
-         * KEY FUNCTIONS (grep)
-         *   Session:   sync, applySession, normalizeTeam, normalizeMembers
-         *   Manager:   managerAdd, onAddCategoryChange, rebuildMemberAddRow,
-         *              reorderPending, setupManagerPendingDragDrop
-         *   Control:   controlStart, controlStop, controlUndo, armCountdownTimer
-         *   Scoring:   officialFinishTime, womenBonusSec, womenCount, categoryFromMembers
-         *   Render:    renderUI → renderManager | renderControl | renderDisplay
-         *   UI/icons:  buildTeamLabel, setCategoryBadge, appendMemberComposition,
-         *              appendVerkleedBadge, categoryIconSvg
-         *
-         * POSSIBLE NEXT STEPS
-         *   - Edit category, composition & Verkleed on pending teams (manager queue)
-         *   - Filter leaderboard by category
-         *   - Fullscreen display mode
-         *   - Export results CSV / print view
-         * ============================================================================= */
+         * Racestatus (alleen wedstrijdleider): IDLE → COUNTDOWN → RACING → IDLE
+         */
 
+        // --- Constanten & globale staat ---
         const STORAGE_KEY = 'kart_session_data';
-        const BACKUP_VERSION = 1;
         const COUNTDOWN_SEC = 5;
         const GO_HOLD_MS = 1500;
         const ADULT_TEAM_SIZE = 4;
@@ -1255,7 +1153,7 @@
         const DEFAULT_CATEGORY = 'gemengd';
         /** @type {WebSocket|null} */
         let ws = null;
-        /** @type {'display'|'manager'|'control'|'home'|''} */
+        /** @type {'display'|'manager'|'control'|''} */
         let wsRole = '';
         let wsConnected = false;
         let wsReady = false;
@@ -2011,7 +1909,7 @@
             }, 2000);
         }
 
-        /** @param {'display'|'manager'|'control'|'home'} role */
+        /** @param {'display'|'manager'|'control'} role */
         function connectWebSocket(role) {
             wsRole = role;
             if (ws) {
@@ -2083,158 +1981,19 @@
             }
         }
 
-        function readStoredSession() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try { return JSON.parse(saved); } catch { /* use in-memory state */ }
-            }
-            return getSession();
-        }
-
-        // --- Backup / load (mode selection screen) -------------------------------
-
-        function backupFilename() {
-            const d = new Date();
-            const pad = (n) => String(n).padStart(2, '0');
-            const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-            return `gokart-backup-${stamp}.json`;
-        }
-
-        function backupRaceData() {
-            const session = readStoredSession();
-            const payload = {
-                version: BACKUP_VERSION,
-                app: 'Go-Kart Remastered',
-                exportedAt: new Date().toISOString(),
-                session,
-            };
-            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = backupFilename();
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function validateBackupSession(raw) {
-            const session = raw.session ?? raw;
-            const teamList = session.teams ?? session.drivers;
-            if (!Array.isArray(teamList)) throw new Error('Back-upbestand mist een teamlijst.');
-
-            const validStates = ['IDLE', 'COUNTDOWN', 'RACING'];
-            if (!validStates.includes(session.raceState)) throw new Error('Back-up heeft een ongeldige racestatus.');
-
-            teamList.forEach((t, i) => {
-                if (!t || typeof t.name !== 'string' || !t.name.trim()) {
-                    throw new Error(`Team ${i + 1} heeft geen naam.`);
-                }
-                if (!['pending', 'racing', 'finished'].includes(t.status)) {
-                    throw new Error(`Team "${t.name}" heeft een ongeldige status.`);
-                }
-            });
-
-            return {
-                raceState: session.raceState,
-                raceStartTime: toMs(session.raceStartTime),
-                countdownEnd: toMs(session.countdownEnd),
-                demeritSecondsPerPoint: sanitizeDemeritSeconds(session.demeritSecondsPerPoint),
-                teams: teamList.map((t, i) => normalizeTeam({
-                    id: t.id ?? Date.now() + i,
-                    name: t.name.trim(),
-                    category: CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY,
-                    members: t.members,
-                    verkleed: !!t.verkleed,
-                    demeritPoints: Number(t.demeritPoints) || 0,
-                    demeritsConfirmed: t.demeritsConfirmed === true,
-                    runElapsedSec: t.runElapsedSec != null ? Number(t.runElapsedSec) : undefined,
-                    totalTime: Number(t.totalTime) || 0,
-                    status: t.status,
-                    runStartTime: toMs(t.runStartTime) ?? 0,
-                    finishedAt: toMs(t.finishedAt),
-                })),
-            };
-        }
-
-        function sanitizeLoadedSession(session) {
-            // Don't restore an expired countdown — would confuse timing
-            if (session.raceState === 'COUNTDOWN') {
-                if (!session.countdownEnd || session.countdownEnd <= Date.now()) {
-                    session.raceState = 'IDLE';
-                    session.countdownEnd = null;
-                }
-            }
-            if (session.raceState !== 'RACING') {
-                session.raceStartTime = null;
-                session.teams.forEach((t) => {
-                    if (t.status === 'racing') {
-                        t.status = 'pending';
-                        t.runStartTime = 0;
-                    }
-                });
-            }
-            if (session.raceState === 'IDLE') {
-                session.raceStartTime = null;
-                session.countdownEnd = null;
-            }
-            return session;
-        }
-
-        function loadRaceDataFromFile(input) {
-            const file = input.files?.[0];
-            input.value = '';
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                try {
-                    const raw = JSON.parse(reader.result);
-                    let session = validateBackupSession(raw);
-                    session = sanitizeLoadedSession(session);
-
-                    const teamCount = session.teams.length;
-                    const finishedCount = session.teams.filter((t) => t.status === 'finished').length;
-                    const summary = `${teamCount} team(s), ${finishedCount} gefinisht.`;
-                    const hasExisting = teams.length > 0 || localStorage.getItem(STORAGE_KEY);
-                    const ok = hasExisting
-                        ? confirm(`Alle huidige racedata vervangen?\n\n${summary}`)
-                        : confirm(`Racedata laden?\n\n${summary}`);
-                    if (!ok) return;
-
-                    clearCountdownTimer();
-                    clearUndo();
-                    lastSoundKey = '';
-                    applySession(session);
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({ type: 'load', session }));
-                    }
-                    renderUI();
-                    alert(`Racedata geladen.\n\n${summary}`);
-                } catch (err) {
-                    alert(`Back-up kon niet worden geladen:\n${err.message || err}`);
-                }
-            };
-            reader.onerror = () => alert('Het geselecteerde bestand kon niet worden gelezen.');
-            reader.readAsText(file);
-        }
-
-        // --- Boot ----------------------------------------------------------------
+        // --- Opstarten: rol uit url (?mode=display|manager|control) ---
 
         function bootFromUrl() {
             const params = new URLSearchParams(location.search);
             const urlMode = params.get('mode');
             const valid = ['manager', 'control', 'display'];
-            if (urlMode && valid.includes(urlMode)) {
-                connectWebSocket(urlMode);
-                setMode(urlMode);
+            if (!urlMode || !valid.includes(urlMode)) {
+                location.replace('/');
                 return;
             }
-            connectWebSocket('home');
-            loadFromStorage();
+            connectWebSocket(urlMode);
+            setMode(urlMode);
         }
-
-        bootFromUrl();
 
         document.getElementById('sound-prompt')?.addEventListener('click', () => {
             enableSound();
@@ -2426,13 +2185,24 @@
             }
         }
 
-        // --- Mode selection & refresh loops ----------------------------------------
+        // --- Mode & refresh loops --------------------------------------------------
+
+        const MODE_PAGE_TITLES = {
+            manager: 'Administrator',
+            control: 'Wedstrijdleider',
+            display: 'Display',
+        };
+
+        /** @param {'manager'|'control'|'display'} selectedMode */
+        function updatePageTitle(selectedMode) {
+            document.title = `Go-Kart Remastered — ${MODE_PAGE_TITLES[selectedMode]}`;
+        }
 
         /** @param {'manager'|'control'|'display'} selectedMode */
         function setMode(selectedMode) {
             mode = selectedMode;
+            updatePageTitle(selectedMode);
             if (wsRole !== selectedMode) connectWebSocket(selectedMode);
-            document.getElementById('mode-selection').classList.add('hidden');
             ['manager-panel', 'control-panel', 'display-panel'].forEach((id) => {
                 document.getElementById(id).classList.add('hidden');
             });
@@ -2806,16 +2576,6 @@
             if (pendingEditTeamId === id) pendingEditTeamId = null;
             teams = teams.filter((t) => t.id !== id);
             sync();
-        }
-
-        function managerReset() {
-            if (confirm('Alles verwijderen? Dit wist alle teams en tijden.')) {
-                localStorage.removeItem(STORAGE_KEY);
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({ type: 'reset' }));
-                }
-                applySession(emptySession());
-            }
         }
 
         /** @returns {Session} */
@@ -3548,6 +3308,8 @@
             }
             updateDisplayNextUp(nextTeam, secondPending());
         }
+
+        bootFromUrl();
     </script>
 </body>
 </html>
