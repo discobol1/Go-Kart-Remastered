@@ -60,6 +60,29 @@ Output: `release/Go-Kart-Remastered-v<version>-standalone-<platform>/`
 
 Contains a compiled server binary plus `public/` and launchers. Zip and share — recipients do not need Node.js.
 
+### macOS: unsigned app openen (Gatekeeper)
+
+Release-builds zijn **niet** ondertekend bij Apple. Na download van GitHub kan macOS melden dat de app “van een onbekende ontwikkelaar” is of hem blokkeren.
+
+**Methode 1 — aanbevolen (eenmalig):**
+
+1. Unzip de release-map.
+2. **Rechtsklik** (of Control-klik) op `Start Go-Kart Remastered.command`.
+3. Kies **Open** → bevestig nogmaals met **Open**.
+4. Daarna werkt normaal dubbelklikken.
+
+Gebruik **niet** alleen dubbelklikken bij de eerste start — dan toont macOS alleen “Verplaats naar prullenmand” zonder Open-knop.
+
+**Methode 2 — quarantaine verwijderen (Terminal):**
+
+```bash
+xattr -dr com.apple.quarantine "/pad/naar/Go-Kart-Remastered-v1.0.0-standalone-mac-arm64"
+```
+
+Vervang het pad door de uitgepakte map. Start daarna de launcher via rechtsklik → Open, of dubbelklik.
+
+**Waarom?** macOS markeert gedownloade bestanden met quarantaine en vertrouwt unsigned binaries standaard niet. Voor distributie zonder waarschuwing is Apple Developer ID + notarisatie nodig.
+
 ### Version bumps
 
 Edit `"version"` in `package.json` before running `npm run build` or `npm run build:standalone`. The release folder name includes the version.
