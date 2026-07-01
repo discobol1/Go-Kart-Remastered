@@ -19,10 +19,23 @@ const COPY_ITEMS = [
   ['README.md', 'README.md'],
 ];
 
-function platformTag() {
-  if (process.platform === 'darwin') return process.arch === 'arm64' ? 'mac-arm64' : 'mac-x64';
-  if (process.platform === 'win32') return 'win-x64';
-  return `${process.platform}-${process.arch}`;
+function parsePlatformArg() {
+  const flag = process.argv.find((a) => a.startsWith('--platform='));
+  if (!flag) return process.platform;
+  const value = flag.split('=')[1];
+  if (value !== 'darwin' && value !== 'win32') {
+    console.error('Use --platform=darwin or --platform=win32');
+    process.exit(1);
+  }
+  return value;
+}
+
+function platformTag(platform) {
+  if (platform === 'darwin') {
+    return process.platform === 'darwin' && process.arch === 'arm64' ? 'mac-arm64' : 'mac-x64';
+  }
+  if (platform === 'win32') return 'win-x64';
+  return `${platform}-unknown`;
 }
 
 function copyRecursive(src, dest) {
@@ -39,14 +52,13 @@ function copyRecursive(src, dest) {
 }
 
 function chmodMacLauncher(file) {
-  if (process.platform === 'darwin' && file.endsWith('.command')) {
-    fs.chmodSync(file, 0o755);
-  }
+  if (file.endsWith('.command')) fs.chmodSync(file, 0o755);
 }
 
-function buildPortable() {
+function buildPortable(buildPlatform) {
   const version = pkg.version;
-  const outName = `Go-Kart-Remastered-v${version}-${platformTag()}`;
+  const tag = platformTag(buildPlatform);
+  const outName = `Go-Kart-Remastered-v${version}-${tag}`;
   const outDir = path.join(ROOT, 'release', outName);
 
   if (fs.existsSync(outDir)) fs.rmSync(outDir, { recursive: true, force: true });
@@ -70,14 +82,18 @@ function buildPortable() {
 
   console.log('  Installing production dependencies…');
   const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  const install = spawnSync(npm, ['ci', '--omit=dev'], {
+  const installArgs = ['ci', '--omit=dev'];
+  // Cross-build Windows node_modules from macOS (express/ws are pure JS).
+  if (buildPlatform === 'win32' && process.platform !== 'win32') {
+    installArgs.push('--os=win32', '--cpu=x64');
+  }
+
+  const install = spawnSync(npm, installArgs, {
     cwd: outDir,
     stdio: 'inherit',
     env: process.env,
   });
-  if (install.status !== 0) {
-    process.exit(install.status ?? 1);
-  }
+  if (install.status !== 0) process.exit(install.status ?? 1);
 
   console.log(`\n  Portable release ready:\n    ${outDir}\n`);
   console.log('  Share this folder as a zip. Users double-click the launcher (Node.js 18+ required).\n');
@@ -85,8 +101,10 @@ function buildPortable() {
 }
 
 function main() {
-  console.log(`\n  Building Go-Kart Remastered v${pkg.version} (${platformTag()})\n`);
-  buildPortable();
+  const buildPlatform = parsePlatformArg();
+  const tag = platformTag(buildPlatform);
+  console.log(`\n  Building Go-Kart Remastered v${pkg.version} (${tag})\n`);
+  buildPortable(buildPlatform);
 }
 
 main();

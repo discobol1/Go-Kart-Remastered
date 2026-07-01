@@ -9,6 +9,7 @@
     "launch": "node scripts/launch.js",
     "build": "node scripts/build-release.js",
     "build:standalone": "node scripts/build-standalone.js",
+    "build:win": "node scripts/build-release.js --platform=win32 && node scripts/build-standalone.js --platform=win32",
     "test": "node scripts/debug-suite.js"
   },
   "dependencies": {
