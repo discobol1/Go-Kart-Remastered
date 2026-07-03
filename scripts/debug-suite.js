@@ -216,7 +216,14 @@ async function testRaceLifecycle({ assert, port, mgr, session, team }) {
     },
   });
   session = await waitForSession(control.ws, (s) => s.raceState === 'COUNTDOWN');
-  assert('Control starts countdown', session.raceState === 'COUNTDOWN' && session.countdownEnd === countdownEnd);
+  assert('Control starts countdown', session.raceState === 'COUNTDOWN' && session.countdownEnd != null);
+  assert('Server sets countdown from server clock', session.serverTime != null);
+  const countdownSpan = session.countdownEnd - session.serverTime;
+  assert(
+    'Countdown duration matches F1 + GO hold',
+    countdownSpan >= COUNTDOWN_MS + GO_HOLD_MS - 200 && countdownSpan <= COUNTDOWN_MS + GO_HOLD_MS + 200,
+    `span=${countdownSpan}`,
+  );
   assert('Undo snapshot stored on start', session.undoSnapshot != null);
 
   session = await waitForSession(displayWs.ws, (s) => s.raceState === 'RACING', COUNTDOWN_MS + GO_HOLD_MS + 3000);

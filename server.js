@@ -21,6 +21,8 @@ const SESSION_FILE = sessionFile();
 
 /** F1-aftelling in seconden voordat de GO-fase start. */
 const COUNTDOWN_SEC = 5;
+/** GO-fase duur in ms (groene lichten) vóór de run start. */
+const GO_HOLD_MS = 1500;
 /** Standaard boeteseconden per taakstrafpunt (aanpasbaar via setup). */
 const DEFAULT_DEMERIT_SEC_PER_POINT = 10;
 
@@ -137,7 +139,14 @@ function sendSession(ws) {
 }
 
 function sessionPayload() {
-  return { ...session, undoSnapshot };
+  return { ...session, undoSnapshot, serverTime: Date.now() };
+}
+
+function broadcastTimeSync() {
+  const text = JSON.stringify({ type: 'time', serverTime: Date.now() });
+  for (const client of clients) {
+    if (client.readyState === 1) client.send(text);
+  }
 }
 
 function saveSessionToDisk() {
@@ -354,6 +363,17 @@ wss.on('connection', (ws) => {
       const merged = mergeForRole(msg.session, role);
       if (!merged) return;
       if (role === 'control') {
+        if (session.raceState === 'IDLE' && merged.raceState === 'COUNTDOWN') {
+          merged.countdownEnd = Date.now() + COUNTDOWN_SEC * 1000 + GO_HOLD_MS;
+        }
+        if (session.raceState === 'COUNTDOWN' && merged.raceState === 'RACING') {
+          if (session.countdownEnd && Date.now() < session.countdownEnd) {
+            merged.raceState = 'COUNTDOWN';
+            merged.raceStartTime = null;
+            merged.countdownEnd = session.countdownEnd;
+            merged.teams = JSON.parse(JSON.stringify(session.teams));
+          }
+        }
         if (msg.undoBefore) {
           undoSnapshot = sanitizeSession(msg.undoBefore);
         } else if (isUndoableTransition(session, merged)) {
@@ -370,7 +390,19 @@ wss.on('connection', (ws) => {
   });
 });
 
-setInterval(tickCountdown, 50);
+let lastTimeSync = 0;
+setInterval(() => {
+  tickCountdown();
+  if (session.raceState === 'COUNTDOWN' || session.raceState === 'RACING') {
+    const now = Date.now();
+    if (now - lastTimeSync >= 1000) {
+      lastTimeSync = now;
+      broadcastTimeSync();
+    }
+  } else {
+    lastTimeSync = 0;
+  }
+}, 50);
 
 server.listen(PORT, '0.0.0.0', () => {
   const addrs = lanAddresses();

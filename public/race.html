@@ -217,7 +217,6 @@
         .cat-badge.vrouwen { background: var(--accent-tint-strong); color: var(--accent); border: 1px solid var(--accent); }
         .cat-badge.jeugd { background: var(--warning-tint); color: var(--warning); border: 1px solid var(--warning); }
         #control-live-cat .cat-icon { width: 1.15rem; height: 1.15rem; }
-        #display-live-cat .cat-icon { width: 1.35rem; height: 1.35rem; }
         .display-queue-row {
             border-left: 6px solid var(--border-strong);
             padding-left: clamp(12px, 2vw, 20px);
@@ -550,32 +549,129 @@
         /* --- DISPLAY MODE (flexible, matches manager / control) --- */
         #display-panel {
             width: 100%; height: 100vh; height: 100dvh; box-sizing: border-box;
-            display: flex; flex-direction: column; gap: 16px;
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+            grid-template-rows: auto minmax(0, 2fr) minmax(0, 1fr);
+            gap: 16px;
             padding: 20px 24px;
             padding-bottom: max(20px, env(safe-area-inset-bottom));
             overflow: hidden; position: relative;
         }
-        .display-columns {
-            display: grid; grid-template-columns: 2fr 1fr;
-            gap: 16px; flex: 1; min-height: 0;
+        #display-panel .panel-toolbar {
+            grid-column: 1 / -1;
+            grid-row: 1;
         }
+        .display-columns { display: contents; }
         .display-col {
             background: var(--card); border: 1px solid var(--card-outline);
             padding: 16px; display: flex; flex-direction: column; min-height: 0;
             box-shadow: 0 0 24px var(--neon-glow);
         }
-        .display-col-live { container-type: inline-size; }
+        .display-col-live {
+            grid-column: 1;
+            grid-row: 2;
+            container-type: inline-size;
+        }
+        .display-col-leaderboard {
+            grid-column: 2;
+            grid-row: 2;
+            container-type: inline-size;
+        }
+        #display-next-up {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            min-height: 0;
+        }
+        #display-panel:not(:has(#display-next-up:not(.hidden))) .display-col-live {
+            grid-row: 2 / 4;
+        }
         #display-live-title {
             width: 100%;
             font-size: clamp(1.25rem, 11cqi, 4.5rem);
             font-weight: 800;
             letter-spacing: 0.02em;
-            line-height: 1.05;
-            white-space: nowrap;
+            line-height: 1.1;
+            white-space: normal;
             overflow: hidden;
-            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
         }
         .display-col-list { flex: 1; overflow-y: auto; min-height: 0; }
+        .display-col-leaderboard .col-title {
+            font-size: clamp(1.1rem, 6cqi, 1.75rem);
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            padding-bottom: clamp(8px, 2cqi, 14px);
+            margin-bottom: clamp(10px, 2.5cqi, 16px);
+            border-bottom-width: 2px;
+        }
+        #display-leaderboard-list .control-result-item {
+            padding: clamp(10px, 2.5cqi, 16px) clamp(12px, 3cqi, 18px);
+            margin-bottom: clamp(8px, 2cqi, 12px);
+            border-left-width: clamp(4px, 1cqi, 6px);
+        }
+        #display-leaderboard-list .control-result-item.best-rank {
+            border-left-width: clamp(5px, 1.4cqi, 8px);
+        }
+        #display-leaderboard-list .control-result-top {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            column-gap: 12px;
+            align-items: start;
+        }
+        #display-leaderboard-list .team-label {
+            width: 100%;
+            min-width: 0;
+            align-items: flex-start;
+            gap: clamp(6px, 2cqi, 10px);
+        }
+        #display-leaderboard-list .team-label-name {
+            flex: 1 1 auto;
+            width: 100%;
+            min-width: 3.5rem;
+            font-size: clamp(0.95rem, 5cqi, 1.5rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+            white-space: normal;
+            word-break: normal;
+            overflow-wrap: break-word;
+        }
+        #display-leaderboard-list .verkleed-badge {
+            display: none;
+        }
+        #display-leaderboard-list .cat-badge {
+            padding: clamp(4px, 1.2cqi, 8px) clamp(5px, 1.5cqi, 10px);
+            flex-shrink: 0;
+        }
+        #display-leaderboard-list .cat-icon {
+            width: clamp(1rem, 3.2cqi, 1.5rem);
+            height: clamp(1rem, 3.2cqi, 1.5rem);
+        }
+        #display-leaderboard-list .control-result-actions {
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        #display-leaderboard-list .control-result-time {
+            font-size: clamp(1.05rem, 5.5cqi, 1.85rem);
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        #display-leaderboard-list .control-result-time--raw {
+            font-size: clamp(0.9rem, 4.5cqi, 1.35rem);
+        }
+        #display-leaderboard-list .control-result-times {
+            gap: clamp(6px, 2cqi, 10px);
+        }
+        #display-leaderboard-list .demerit-badge {
+            font-size: clamp(0.7rem, 2.8cqi, 1rem);
+            padding: 2px clamp(4px, 1.5cqi, 8px);
+        }
+        #display-leaderboard-list .col-empty {
+            font-size: clamp(0.95rem, 4cqi, 1.35rem);
+        }
         #display-live {
             flex: 1; display: flex; flex-direction: column;
             align-items: stretch; text-align: center;
@@ -586,10 +682,6 @@
             flex: 1; display: flex; flex-direction: column;
             align-items: stretch; justify-content: center; min-height: 0;
             width: 100%;
-        }
-        #display-live .team-line {
-            flex-shrink: 0;
-            justify-content: center; margin-bottom: clamp(4px, 1cqh, 12px); max-width: 100%;
         }
         #main-timer {
             flex: 1 1 0; width: 100%; min-height: 0;
@@ -603,7 +695,7 @@
         #main-timer.live.warn { color: var(--warning); }
         #main-timer.dim { color: var(--border); }
         .display-next-block {
-            flex-shrink: 0; background: var(--card); border: 1px solid var(--card-outline);
+            background: var(--card); border: 1px solid var(--card-outline);
             padding: clamp(1rem, 2vw, 1.75rem) 20px;
             box-shadow: 0 0 24px var(--neon-glow);
         }
@@ -636,7 +728,9 @@
             position: fixed; inset: 0;
             background: var(--overlay-bg);
             display: none; align-items: center; justify-content: center;
-            flex-direction: column; gap: clamp(1.5rem, 4vw, 3rem);
+            flex-direction: column; gap: clamp(1rem, 3vh, 2.5rem);
+            padding: clamp(12px, 2vw, 28px);
+            box-sizing: border-box;
             z-index: 200;
             transition: background 0.2s ease;
         }
@@ -644,7 +738,10 @@
         #countdown-overlay .team-line {
             justify-content: center; max-width: 90vw;
         }
-        .countdown-team-block { text-align: center; }
+        .countdown-team-block {
+            text-align: center;
+            flex-shrink: 0;
+        }
         #countdown-team-name {
             font-size: clamp(1.75rem, 5vw, 3.5rem); font-weight: 800;
             text-transform: uppercase; letter-spacing: 2px;
@@ -659,6 +756,15 @@
             border: 3px solid color-mix(in srgb, var(--warning) 30%, #141008);
             box-shadow: 0 0 20px var(--neon-glow), inset 0 1px 0 color-mix(in srgb, var(--warning) 14%, transparent);
         }
+        #countdown-f1-lights.f1-light-panel {
+            width: 100%;
+            max-width: none;
+            flex: 0 1 auto;
+            align-self: stretch;
+            gap: clamp(10px, 1.8vw, 28px);
+            padding: clamp(20px, 4.5vh, 72px) clamp(14px, 2.5vw, 36px);
+            border-width: clamp(3px, 0.35vw, 6px);
+        }
         .f1-light {
             width: clamp(44px, 11vw, 72px);
             height: clamp(44px, 11vw, 72px);
@@ -667,6 +773,15 @@
             border: 3px solid color-mix(in srgb, var(--warning) 20%, #0c0a06);
             box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.7);
             transition: background 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+        }
+        #countdown-f1-lights .f1-light {
+            flex: 1 1 0;
+            min-width: 0;
+            width: auto;
+            height: auto;
+            aspect-ratio: 1;
+            max-height: min(calc((100vw - clamp(48px, 8vw, 96px)) / 5), 48vh);
+            border-width: clamp(3px, 0.35vw, 7px);
         }
         .f1-light.on {
             background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--accent) 55%, white) 0%, var(--accent) 45%, color-mix(in srgb, var(--accent) 75%, black) 100%);
@@ -705,20 +820,26 @@
             transform: none;
         }
 
+        #countdown-f1-lights.f1-light-panel.lights-go .f1-light.on {
+            transform: scale(1.03);
+        }
+
         #countdown-status {
-            font-size: clamp(3rem, 14vw, 7rem);
+            font-size: clamp(3.5rem, 14vw, 8rem);
             font-weight: 900; letter-spacing: 0.15em;
             text-transform: uppercase;
             color: transparent;
             min-height: 1.1em;
             line-height: 1;
+            flex-shrink: 0;
         }
         #countdown-overlay.go {
             background: var(--success-tint-strong);
         }
         #countdown-overlay.go #countdown-status {
+            font-size: clamp(5rem, 22vw, 16rem);
             color: var(--success);
-            text-shadow: 0 0 40px var(--success-glow);
+            text-shadow: 0 0 40px var(--success-glow), 0 0 80px color-mix(in srgb, var(--success) 35%, transparent);
         }
 
         #control-f1-lights { flex-shrink: 0; }
@@ -849,10 +970,30 @@
             }
 
             .manager-columns,
-            .control-columns,
-            .display-columns {
+            .control-columns {
                 grid-template-columns: 1fr;
                 gap: 10px;
+            }
+
+            #display-panel {
+                display: flex;
+                flex-direction: column;
+            }
+            .display-columns {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+                flex: 1;
+                min-height: 0;
+            }
+            .display-col-live,
+            .display-col-leaderboard,
+            #display-next-up {
+                grid-column: auto;
+                grid-row: auto;
+            }
+            #display-panel:not(:has(#display-next-up:not(.hidden))) .display-col-live {
+                grid-row: auto;
             }
 
             .manager-columns .manager-col,
@@ -1074,14 +1215,11 @@
                 <h3 class="col-title" id="display-live-title">—</h3>
                 <div id="display-live">
                     <div class="display-live-center">
-                        <div class="team-line">
-                            <div id="display-live-cat"></div>
-                        </div>
                         <div id="main-timer" class="dim">00:00.000</div>
                     </div>
                 </div>
             </section>
-            <section class="display-col">
+            <section class="display-col display-col-leaderboard">
                 <h3 class="col-title">Klassement</h3>
                 <div id="display-leaderboard-list" class="display-col-list"></div>
             </section>
@@ -1161,7 +1299,6 @@
         let mode = '';
         let displayLoopId = null;
         let controlLoopId = null;
-        let countdownTimerId = null;
         /** @type {'recent'|'best'} */
         let controlResultsSort = 'recent';
         /** @type {'recent'|'best'} */
@@ -1176,8 +1313,18 @@
         let serverSessionReady = false;
         let soundEnabled = false;
         let audioCtx = null;
-        /** Dedupes countdown beeps across tabs/frames */
-        let lastSoundKey = '';
+        /** Offset (ms) to align local clock with server time. */
+        let serverOffset = 0;
+
+        /** Server-aligned timestamp for countdown and live timers. */
+        function serverNow() {
+            return Date.now() + serverOffset;
+        }
+
+        function applyServerTime(serverTime) {
+            const ms = toMs(serverTime);
+            if (ms != null) serverOffset = ms - Date.now();
+        }
 
         /** @type {'IDLE'|'COUNTDOWN'|'RACING'} */
         let raceState = 'IDLE';
@@ -1189,6 +1336,8 @@
         let teams = [];
         /** Seconds added to official time per task demerit point (synced from server). */
         let demeritSecondsPerPoint = DEFAULT_DEMERIT_SEC_PER_POINT;
+        /** Dedupes countdown beeps across tabs/frames */
+        let lastSoundKey = '';
 
         /**
          * @typedef {'gemengd'|'vrouwen'|'jeugd'} CategoryKey
@@ -1392,7 +1541,7 @@
         /** Raw clock for the team shown in the demerit review panel. @param {Team} team */
         function teamReviewRawSec(team) {
             if (team.status === 'racing' && raceStartTime) {
-                return liveRaceClockSec((Date.now() - raceStartTime) / 1000);
+                return liveRaceClockSec((serverNow() - raceStartTime) / 1000);
             }
             if (team.runElapsedSec != null) return team.runElapsedSec;
             return 0;
@@ -1425,7 +1574,7 @@
             const penalty = demeritPenaltySec(team);
             if (pts > 0 && penalty > 0) {
                 lines.push({
-                    label: `Taakstraffen (${pts} pnt)`,
+                    label: `Strafpunten (${pts} pnt)`,
                     delta: penalty,
                     kind: 'penalty',
                 });
@@ -1716,12 +1865,9 @@
             const raw = raceData.teams ?? raceData.drivers;
             teams = Array.isArray(raw) ? raw.map(normalizeTeam) : [];
             demeritSecondsPerPoint = sanitizeDemeritSeconds(raceData.demeritSecondsPerPoint);
-            if (raceState !== 'COUNTDOWN') clearCountdownTimer();
+            if (fromServer) applyServerTime(raceData.serverTime);
             if (mode === 'control') updateUndoButton();
             renderUI();
-            if (mode === 'control' && raceState === 'COUNTDOWN' && countdownEnd) {
-                armCountdownTimer();
-            }
         }
 
         function updateConnectionStatus() {
@@ -1935,6 +2081,10 @@
             ws.onmessage = (event) => {
                 let msg;
                 try { msg = JSON.parse(event.data); } catch { return; }
+                if (msg.type === 'time') {
+                    applyServerTime(msg.serverTime);
+                    return;
+                }
                 if (msg.type === 'session') {
                     wsReady = true;
                     applySession(msg.session, { fromServer: true });
@@ -2030,7 +2180,6 @@
 
         function applyLocalUndo() {
             if (!undoSnapshot) return false;
-            clearCountdownTimer();
             raceState = undoSnapshot.raceState;
             raceStartTime = undoSnapshot.raceStartTime;
             countdownEnd = undoSnapshot.countdownEnd;
@@ -2057,7 +2206,6 @@
         function controlUndo() {
             if (!undoSnapshot) return;
             undoPendingServer = false;
-            clearCountdownTimer();
             lastSoundKey = '';
             if (soundEnabled) playCancel();
             if (ws && ws.readyState === WebSocket.OPEN && wsReady) {
@@ -2153,7 +2301,7 @@
             if (!countdownEnd) return { remaining: 0, lit: 0, go: false };
             const goAt = countdownEnd - GO_HOLD_MS;
             const start = goAt - COUNTDOWN_SEC * 1000;
-            const now = Date.now();
+            const now = serverNow();
             if (now >= countdownEnd) return { remaining: 0, lit: 0, go: false };
             if (now >= goAt) return { remaining: 0, lit: 5, go: true };
             const elapsed = Math.max(0, now - start);
@@ -2216,7 +2364,6 @@
                 document.getElementById('control-panel').classList.remove('hidden');
                 updateUndoButton();
                 startControlLoop();
-                if (raceState === 'COUNTDOWN' && countdownEnd) armCountdownTimer();
                 placePanelActions();
             } else {
                 document.getElementById('display-panel').classList.remove('hidden');
@@ -2249,6 +2396,7 @@
                     if (raceState === 'RACING' || raceState === 'COUNTDOWN' || unconfirmedDemeritTeam()) {
                         renderControl();
                     }
+                    if (raceState === 'COUNTDOWN') handleCountdownSounds();
                     controlLoopId = requestAnimationFrame(tick);
                 } else {
                     controlLoopId = null;
@@ -2591,51 +2739,6 @@
 
         // --- Control -------------------------------------------------------------
 
-        function clearCountdownTimer() {
-            if (countdownTimerId != null) {
-                clearInterval(countdownTimerId);
-                countdownTimerId = null;
-            }
-        }
-
-        /** Control-tab interval: fires beginRacingRun when countdownEnd is reached. */
-        function armCountdownTimer() {
-            clearCountdownTimer();
-            const next = nextPending();
-            if (!next || raceState !== 'COUNTDOWN' || !countdownEnd) return;
-
-            countdownTimerId = setInterval(() => {
-                if (raceState !== 'COUNTDOWN' || !countdownEnd) {
-                    clearCountdownTimer();
-                    return;
-                }
-                if (Date.now() >= countdownEnd) {
-                    clearCountdownTimer();
-                    if (raceState === 'COUNTDOWN') {
-                        pushUndo();
-                        beginRacingRun(next);
-                    }
-                } else {
-                    renderControl();
-                    handleCountdownSounds();
-                }
-            }, 50);
-        }
-
-        /** @param {Team} team */
-        function beginRacingRun(team) {
-            if (raceState === 'RACING') return;
-            raceState = 'RACING';
-            countdownEnd = null;
-            raceStartTime = Date.now();
-            team.status = 'racing';
-            team.runStartTime = raceStartTime;
-            team.demeritPoints = 0;
-            team.demeritsConfirmed = false;
-            demeritEditTeamId = null;
-            sync();
-        }
-
         /** Start countdown for the next pending team (control tab only). */
         function controlStart() {
             if (raceState !== 'IDLE') return;
@@ -2646,19 +2749,16 @@
             if (!next) return alert('Geen teams meer in de wachtrij!');
 
             pushUndo();
-            clearCountdownTimer();
             raceState = 'COUNTDOWN';
-            countdownEnd = Date.now() + COUNTDOWN_SEC * 1000 + GO_HOLD_MS;
+            countdownEnd = serverNow() + COUNTDOWN_SEC * 1000 + GO_HOLD_MS;
             lastSoundKey = '';
             sync();
-            armCountdownTimer();
         }
 
         /** Finish current run or cancel countdown (control tab only). */
         function controlStop() {
             // Cancel countdown — recovery for accidental Start (Undo also works)
             if (raceState === 'COUNTDOWN') {
-                clearCountdownTimer();
                 raceState = 'IDLE';
                 countdownEnd = null;
                 lastSoundKey = '';
@@ -2671,18 +2771,17 @@
 
             pushUndo();
             if (current) {
-                const elapsed = (Date.now() - current.runStartTime) / 1000;
+                const elapsed = (serverNow() - current.runStartTime) / 1000;
                 current.runElapsedSec = elapsed;
                 current.totalTime = officialFinishTime(current, elapsed);
                 current.status = 'finished';
-                current.finishedAt = Date.now();
+                current.finishedAt = serverNow();
                 current.demeritsConfirmed = false;
             }
             demeritEditTeamId = null;
             raceState = 'IDLE';
             raceStartTime = null;
             countdownEnd = null;
-            clearCountdownTimer();
             if (soundEnabled) playStopRecorded();
             sync();
         }
@@ -3032,14 +3131,18 @@
             return div;
         }
 
-        function renderControlResultRow(t, rank, isBestSort, { showEditPoints = false } = {}) {
+        function renderControlResultRow(t, rank, isBestSort, { showEditPoints = false, showVerkleed = true } = {}) {
             const cat = CATEGORIES[t.category] ? t.category : DEFAULT_CATEGORY;
             const div = document.createElement('div');
             div.className = `control-result-item cat-${cat}${isBestSort && rank === 1 ? ' best-rank' : ''}`;
             div.title = categoryLabel(cat);
             const top = document.createElement('div');
             top.className = 'control-result-top';
-            top.appendChild(buildTeamLabel(t, { showCategory: false, showComposition: false }));
+            top.appendChild(buildTeamLabel(t, {
+                showCategory: false,
+                showComposition: false,
+                showVerkleed,
+            }));
 
             const actions = document.createElement('div');
             actions.className = 'control-result-actions';
@@ -3127,7 +3230,7 @@
                 setCategoryBadge(badge, racing.category);
                 liveCat.appendChild(badge);
                 liveName.textContent = racing.name;
-                const elapsed = raceStartTime ? (Date.now() - raceStartTime) / 1000 : 0;
+                const elapsed = raceStartTime ? (serverNow() - raceStartTime) / 1000 : 0;
                 liveTimer.textContent = formatTime(liveRaceClockSec(elapsed));
                 liveTimer.className = '';
             } else {
@@ -3245,7 +3348,7 @@
             }
             list.replaceChildren();
             finished.forEach((t, i) => {
-                list.appendChild(renderControlResultRow(t, i + 1, true));
+                list.appendChild(renderControlResultRow(t, i + 1, true, { showVerkleed: false }));
             });
         }
 
@@ -3266,7 +3369,6 @@
             const countdownTeamName = document.getElementById('countdown-team-name');
             const countdownLights = document.getElementById('countdown-f1-lights');
             const countdownStatus = document.getElementById('countdown-status');
-            const racingTeam = currentRacing();
             const nextTeam = nextPending();
             const liveTitleEl = document.getElementById('display-live-title');
             const titleTeam = getDisplayLiveTitleTeam();
@@ -3297,14 +3399,12 @@
             overlay.classList.remove('visible', 'go');
 
             if (raceState === 'RACING' && raceStartTime) {
-                renderCategoryBadge(document.getElementById('display-live-cat'), racingTeam);
-                const elapsed = (Date.now() - raceStartTime) / 1000;
+                const elapsed = (serverNow() - raceStartTime) / 1000;
                 timerEl.textContent = formatTime(liveRaceClockSec(elapsed));
                 timerEl.className = 'live';
             } else {
                 timerEl.textContent = '00:00.000';
                 timerEl.className = 'dim';
-                document.getElementById('display-live-cat').replaceChildren();
             }
             updateDisplayNextUp(nextTeam, secondPending());
         }
